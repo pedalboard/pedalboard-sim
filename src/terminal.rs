@@ -1,7 +1,7 @@
 use crossterm::{
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType},
+    terminal::{disable_raw_mode, enable_raw_mode, Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen},
     cursor,
 };
 use std::io::{self, Write};
@@ -11,28 +11,18 @@ use pedalboard_protocol::config::Config;
 use crate::midi::MidiOut;
 use crate::sim::Pedalboard;
 
-/// Key mapping for the virtual pedalboard
-/// Buttons A-F mapped to keys 1-6 (or a-f)
-/// Encoders: left/right arrows (encoder 0), up/down for encoder 1
-/// Preset switching: F1-F9
-
-const BUTTON_KEYS: &[(char, &str)] = &[
-    ('1', "A"),
-    ('2', "B"),
-    ('3', "C"),
-    ('4', "D"),
-    ('5', "E"),
-    ('6', "F"),
-];
+const BUTTON_KEYS: &[char] = &['1', '2', '3', '4', '5', '6'];
+const BUTTON_LABELS: &[&str] = &["A", "B", "C", "D", "E", "F"];
 
 pub fn run(mut midi: MidiOut, config: Option<Config>, preset_index: usize) -> anyhow::Result<()> {
     let mut pedalboard = config.map(|c| Pedalboard::new(c, preset_index));
+    let mut last_action = String::new();
 
-    enable_raw_mode()?;
     let mut stdout = io::stdout();
-    execute!(stdout, Clear(ClearType::All), cursor::MoveTo(0, 0))?;
+    enable_raw_mode()?;
+    execute!(stdout, EnterAlternateScreen, cursor::Hide)?;
 
-    print_ui(&mut stdout, &pedalboard)?;
+    render(&mut stdout, &pedalboard, &last_action)?;
 
     loop {
         if event::poll(std::time::Duration::from_millis(50))? {
@@ -49,14 +39,11 @@ pub fn run(mut midi: MidiOut, config: Option<Config>, preset_index: usize) -> an
                         let index = (c as u8 - b'1') as usize;
                         if let Some(ref mut pb) = pedalboard {
                             pb.press_button(index, &mut midi);
-                            // Simulate immediate release for toggle behavior
                             pb.release_button(index, &mut midi);
                         } else {
-                            // No config — send raw CC
                             midi.cc(0, 20 + index as u8, 127);
                         }
-                        execute!(stdout, cursor::MoveTo(0, 12))?;
-                        writeln!(stdout, "  → Button {} pressed", BUTTON_KEYS[index as usize].1)?;
+                        last_action = format!("Button {} pressed", BUTTON_LABELS[index]);
                     }
 
                     // Encoder 0: left/right
@@ -64,15 +51,13 @@ pub fn run(mut midi: MidiOut, config: Option<Config>, preset_index: usize) -> an
                         if let Some(ref mut pb) = pedalboard {
                             pb.turn_encoder(0, false, &mut midi);
                         }
-                        execute!(stdout, cursor::MoveTo(0, 12))?;
-                        writeln!(stdout, "  → Encoder 0 ←")?;
+                        last_action = "Encoder 0 ◀".to_string();
                     }
                     KeyEvent { code: KeyCode::Right, .. } => {
                         if let Some(ref mut pb) = pedalboard {
                             pb.turn_encoder(0, true, &mut midi);
                         }
-                        execute!(stdout, cursor::MoveTo(0, 12))?;
-                        writeln!(stdout, "  → Encoder 0 →")?;
+                        last_action = "Encoder 0 ▶".to_string();
                     }
 
                     // Encoder 1: up/down
@@ -80,15 +65,13 @@ pub fn run(mut midi: MidiOut, config: Option<Config>, preset_index: usize) -> an
                         if let Some(ref mut pb) = pedalboard {
                             pb.turn_encoder(1, true, &mut midi);
                         }
-                        execute!(stdout, cursor::MoveTo(0, 12))?;
-                        writeln!(stdout, "  → Encoder 1 ↑")?;
+                        last_action = "Encoder 1 ▲".to_string();
                     }
                     KeyEvent { code: KeyCode::Down, .. } => {
                         if let Some(ref mut pb) = pedalboard {
                             pb.turn_encoder(1, false, &mut midi);
                         }
-                        execute!(stdout, cursor::MoveTo(0, 12))?;
-                        writeln!(stdout, "  → Encoder 1 ↓")?;
+                        last_action = "Encoder 1 ▼".to_string();
                     }
 
                     // Preset switching: F1-F9
@@ -98,51 +81,52 @@ pub fn run(mut midi: MidiOut, config: Option<Config>, preset_index: usize) -> an
                             pb.switch_preset(index);
                         }
                         midi.program_change(0, index as u8);
-                        execute!(stdout, cursor::MoveTo(0, 0))?;
-                        print_ui(&mut stdout, &pedalboard)?;
+                        last_action = format!("Switched to preset {}", index);
                     }
 
-                    _ => {}
+                    _ => continue,
                 }
+
+                render(&mut stdout, &pedalboard, &last_action)?;
             }
         }
     }
 
+    execute!(stdout, LeaveAlternateScreen, cursor::Show)?;
     disable_raw_mode()?;
-    execute!(stdout, cursor::Show)?;
-    println!("\nBye!");
     Ok(())
 }
 
-fn print_ui(stdout: &mut impl Write, pedalboard: &Option<Pedalboard>) -> io::Result<()> {
-    writeln!(stdout, "┌─────────────────────────────────────────┐")?;
-    writeln!(stdout, "│  PEDALBOARD SIMULATOR                   │")?;
-    writeln!(stdout, "├─────────────────────────────────────────┤")?;
+fn render(stdout: &mut impl Write, pedalboard: &Option<Pedalboard>, last_action: &str) -> io::Result<()> {
+    execute!(io::stdout(), cursor::MoveTo(0, 0), Clear(ClearType::All))?;
+
+    writeln!(stdout, "╔═══════════════════════════════════════════╗")?;
+    writeln!(stdout, "║  PEDALBOARD SIMULATOR                     ║")?;
+    writeln!(stdout, "╠═══════════════════════════════════════════╣")?;
 
     if let Some(pb) = pedalboard {
+        writeln!(stdout, "║  Preset {}: {:<30}║", pb.active_preset, pb.preset_name())?;
+        writeln!(stdout, "╠═══════════════════════════════════════════╣")?;
         let labels = pb.button_labels();
-        writeln!(stdout, "│  Preset {}: {:<28} │", pb.active_preset, pb.preset_name())?;
-        writeln!(stdout, "├─────────────────────────────────────────┤")?;
-        for (i, (key, default_label)) in BUTTON_KEYS.iter().enumerate() {
-            if let Some(label) = labels.get(i) {
-                writeln!(stdout, "│  [{}] {:<35} │", key, label)?;
-            } else {
-                writeln!(stdout, "│  [{}] {:<35} │", key, default_label)?;
-            }
+        for i in 0..6 {
+            let label = labels.get(i).copied().unwrap_or(BUTTON_LABELS[i]);
+            writeln!(stdout, "║  [{}]  {:<36}║", BUTTON_KEYS[i], label)?;
         }
     } else {
-        writeln!(stdout, "│  No config loaded (raw MIDI mode)       │")?;
-        writeln!(stdout, "│                                         │")?;
-        for (key, label) in BUTTON_KEYS {
-            writeln!(stdout, "│  [{}] → CC {:<28} │", key, label)?;
+        writeln!(stdout, "║  No config loaded (raw MIDI mode)         ║")?;
+        writeln!(stdout, "╠═══════════════════════════════════════════╣")?;
+        for i in 0..6 {
+            writeln!(stdout, "║  [{}]  CC {:<33}║", BUTTON_KEYS[i], 20 + i)?;
         }
     }
 
-    writeln!(stdout, "├─────────────────────────────────────────┤")?;
-    writeln!(stdout, "│  ←/→ Encoder 0   ↑/↓ Encoder 1         │")?;
-    writeln!(stdout, "│  F1-F9 Switch preset   q Quit           │")?;
-    writeln!(stdout, "└─────────────────────────────────────────┘")?;
-    writeln!(stdout)?;
+    writeln!(stdout, "╠═══════════════════════════════════════════╣")?;
+    writeln!(stdout, "║  ←/→  Encoder 0     ↑/↓  Encoder 1       ║")?;
+    writeln!(stdout, "║  F1-F9 Switch preset     q Quit           ║")?;
+    writeln!(stdout, "╠═══════════════════════════════════════════╣")?;
+    writeln!(stdout, "║  > {:<39}║", last_action)?;
+    writeln!(stdout, "╚═══════════════════════════════════════════╝")?;
+
     stdout.flush()?;
     Ok(())
 }
