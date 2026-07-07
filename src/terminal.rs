@@ -122,7 +122,7 @@ fn render(stdout: &mut impl Write, pedalboard: &Option<Pedalboard>, last_action:
 
     write!(stdout, "+-------------------------------------------+\r\n")?;
     write!(stdout, "|  <-/->  Encoder 0   up/dn  Encoder 1      |\r\n")?;
-    write!(stdout, "|  F1-F9  Switch preset       q  Quit        |\r\n")?;
+    write!(stdout, "|  F1-F9  Switch preset       q  Quit       |\r\n")?;
     write!(stdout, "+-------------------------------------------+\r\n")?;
     write!(stdout, "|  > {:<39}|\r\n", last_action)?;
     write!(stdout, "+-------------------------------------------+\r\n")?;
