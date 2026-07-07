@@ -100,32 +100,32 @@ pub fn run(mut midi: MidiOut, config: Option<Config>, preset_index: usize) -> an
 fn render(stdout: &mut impl Write, pedalboard: &Option<Pedalboard>, last_action: &str) -> io::Result<()> {
     execute!(io::stdout(), cursor::MoveTo(0, 0), Clear(ClearType::All))?;
 
-    writeln!(stdout, "╔═══════════════════════════════════════════╗")?;
-    writeln!(stdout, "║  PEDALBOARD SIMULATOR                     ║")?;
-    writeln!(stdout, "╠═══════════════════════════════════════════╣")?;
+    writeln!(stdout, "+-------------------------------------------+")?;
+    writeln!(stdout, "|  PEDALBOARD SIMULATOR                     |")?;
+    writeln!(stdout, "+-------------------------------------------+")?;
 
     if let Some(pb) = pedalboard {
-        writeln!(stdout, "║  Preset {}: {:<30}║", pb.active_preset, pb.preset_name())?;
-        writeln!(stdout, "╠═══════════════════════════════════════════╣")?;
+        writeln!(stdout, "|  Preset {}: {:<30}|", pb.active_preset, pb.preset_name())?;
+        writeln!(stdout, "+-------------------------------------------+")?;
         let labels = pb.button_labels();
         for i in 0..6 {
             let label = labels.get(i).copied().unwrap_or(BUTTON_LABELS[i]);
-            writeln!(stdout, "║  [{}]  {:<36}║", BUTTON_KEYS[i], label)?;
+            writeln!(stdout, "|  [{}]  {:<36}|", BUTTON_KEYS[i], label)?;
         }
     } else {
-        writeln!(stdout, "║  No config loaded (raw MIDI mode)         ║")?;
-        writeln!(stdout, "╠═══════════════════════════════════════════╣")?;
+        writeln!(stdout, "|  No config loaded (raw MIDI mode)         |")?;
+        writeln!(stdout, "+-------------------------------------------+")?;
         for i in 0..6 {
-            writeln!(stdout, "║  [{}]  CC {:<33}║", BUTTON_KEYS[i], 20 + i)?;
+            writeln!(stdout, "|  [{}]  CC {:<33}|", BUTTON_KEYS[i], 20 + i)?;
         }
     }
 
-    writeln!(stdout, "╠═══════════════════════════════════════════╣")?;
-    writeln!(stdout, "║  ←/→  Encoder 0     ↑/↓  Encoder 1       ║")?;
-    writeln!(stdout, "║  F1-F9 Switch preset     q Quit           ║")?;
-    writeln!(stdout, "╠═══════════════════════════════════════════╣")?;
-    writeln!(stdout, "║  > {:<39}║", last_action)?;
-    writeln!(stdout, "╚═══════════════════════════════════════════╝")?;
+    writeln!(stdout, "+-------------------------------------------+")?;
+    writeln!(stdout, "|  <-/->  Encoder 0   up/dn  Encoder 1      |")?;
+    writeln!(stdout, "|  F1-F9  Switch preset       q  Quit        |")?;
+    writeln!(stdout, "+-------------------------------------------+")?;
+    writeln!(stdout, "|  > {:<39}|", last_action)?;
+    writeln!(stdout, "+-------------------------------------------+")?;
 
     stdout.flush()?;
     Ok(())
