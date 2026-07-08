@@ -1,14 +1,31 @@
 use midir::os::unix::VirtualOutput;
 use midir::{MidiOutput, MidiOutputConnection};
+use std::fs::{File, OpenOptions};
+use std::io::Write;
+use std::path::Path;
+
+enum Backend {
+    Alsa(MidiOutputConnection),
+    Raw(File),
+}
 
 pub struct MidiOut {
-    conn: MidiOutputConnection,
+    backend: Backend,
 }
 
 impl MidiOut {
     pub fn send(&mut self, msg: &[u8]) {
-        if let Err(e) = self.conn.send(msg) {
-            eprintln!("MIDI send error: {}", e);
+        match &mut self.backend {
+            Backend::Alsa(conn) => {
+                if let Err(e) = conn.send(msg) {
+                    eprintln!("MIDI send error: {}", e);
+                }
+            }
+            Backend::Raw(file) => {
+                if let Err(e) = file.write_all(msg) {
+                    eprintln!("MIDI raw write error: {}", e);
+                }
+            }
         }
     }
 
@@ -23,6 +40,7 @@ impl MidiOut {
     }
 }
 
+/// Create a virtual ALSA MIDI port (for DAW / sequencer use).
 pub fn open_output(port_name: &str) -> anyhow::Result<MidiOut> {
     let output = MidiOutput::new("pedalboard-sim")?;
 
@@ -32,5 +50,21 @@ pub fn open_output(port_name: &str) -> anyhow::Result<MidiOut> {
 
     eprintln!("✓ Virtual MIDI port created: \"{}\"", port_name);
     eprintln!("  Connect your DAW or bridge to this port to receive MIDI.");
-    Ok(MidiOut { conn })
+    Ok(MidiOut {
+        backend: Backend::Alsa(conn),
+    })
+}
+
+/// Open a raw MIDI output (file, FIFO, or device node).
+/// Writes raw MIDI bytes directly — suitable for pedalboard-bridge integration.
+pub fn open_raw(path: &Path) -> anyhow::Result<MidiOut> {
+    let file = OpenOptions::new().write(true).open(path).map_err(|e| {
+        anyhow::anyhow!("Failed to open raw MIDI output '{}': {}", path.display(), e)
+    })?;
+
+    eprintln!("✓ Raw MIDI output: {}", path.display());
+    eprintln!("  Bytes written here are read by pedalboard-bridge as MIDI input.");
+    Ok(MidiOut {
+        backend: Backend::Raw(file),
+    })
 }

@@ -17,9 +17,15 @@ struct Cli {
     #[arg(short, long)]
     config: Option<PathBuf>,
 
-    /// MIDI output port name (creates virtual port)
+    /// MIDI output port name (creates virtual ALSA sequencer port)
     #[arg(short, long, default_value = "Pedalboard Sim")]
     port: String,
+
+    /// Raw MIDI output path (FIFO or device, e.g. /tmp/midi-fifo).
+    /// When set, writes raw bytes instead of using ALSA sequencer.
+    /// Use this for pedalboard-bridge integration.
+    #[arg(long)]
+    raw: Option<PathBuf>,
 
     /// Start on this preset index
     #[arg(short = 'i', long, default_value = "0")]
@@ -33,8 +39,11 @@ struct Cli {
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    // Create virtual MIDI output
-    let midi_out = midi::open_output(&cli.port)?;
+    // Create MIDI output (virtual ALSA port or raw file)
+    let midi_out = match &cli.raw {
+        Some(path) => midi::open_raw(path)?,
+        None => midi::open_output(&cli.port)?,
+    };
 
     // Load config if provided
     let config = match &cli.config {
@@ -112,13 +121,19 @@ fn run_with_web(
         }
     });
 
-    // Run the TUI on the main thread (needs terminal access)
-    let tui_result = terminal::run_shared(pedalboard, midi, notify_tx);
-
-    // TUI exited — abort the web server
-    rt.block_on(async {
-        web_handle.abort();
-    });
-
-    tui_result
+    // Run the TUI on the main thread if we have a terminal, otherwise block on web
+    use std::io::IsTerminal;
+    if std::io::stdin().is_terminal() {
+        let tui_result = terminal::run_shared(pedalboard, midi, notify_tx);
+        rt.block_on(async {
+            web_handle.abort();
+        });
+        tui_result
+    } else {
+        eprintln!("  (no terminal — web-only mode, Ctrl-C to quit)");
+        rt.block_on(async {
+            web_handle.await.unwrap();
+        });
+        Ok(())
+    }
 }

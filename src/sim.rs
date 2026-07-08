@@ -1,6 +1,7 @@
-use pedalboard_protocol::config::{Color, Config};
+use pedalboard_protocol::config::{Color, Config, LedAnimation, LedRenderer as LedRendererCfg};
 use pedalboard_protocol::controller::{Controller, Event, Output};
 use pedalboard_protocol::engine::ActionStep;
+use pedalboard_protocol::led::{LedRing, Modifier, Renderer, Rgb, RingAnimation, LEDS_PER_RING};
 use pedalboard_protocol::long_press::Edge;
 use serde::Serialize;
 use std::time::Instant;
@@ -23,6 +24,7 @@ pub struct ButtonState {
     pub label: String,
     pub active: bool,
     pub color: String,
+    pub ring: Vec<String>, // 12 CSS color strings per LED
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -163,9 +165,11 @@ impl Pedalboard {
         let button_active = self.controller.button_states();
         let encoder_values = self.controller.encoder_values();
 
+        let tick = (self.now_ms() / 20) as u16; // ~50fps tick for animations
+
         let buttons = (0..6)
             .map(|i| {
-                let (label, color) = preset
+                let (label, color, ring_anim) = preset
                     .and_then(|p| p.buttons.get(i))
                     .map(|b| {
                         let c = if button_active[i] {
@@ -173,14 +177,52 @@ impl Pedalboard {
                         } else {
                             &b.color.off
                         };
-                        (b.label.as_str().to_string(), color_to_css(c))
+                        let anim = if button_active[i] {
+                            RingAnimation {
+                                renderer: build_renderer(
+                                    &b.color.on,
+                                    b.color.renderer,
+                                    b.color.renderer_param,
+                                ),
+                                modifier: anim_to_modifier(b.color.animation),
+                            }
+                        } else if b.color.off == Color::Off {
+                            RingAnimation {
+                                renderer: build_renderer(
+                                    &b.color.on,
+                                    b.color.renderer,
+                                    b.color.renderer_param,
+                                ),
+                                modifier: Modifier::Glow,
+                            }
+                        } else {
+                            RingAnimation::solid(color_to_rgb_led(&b.color.off))
+                        };
+                        (b.label.as_str().to_string(), color_to_css(c), anim)
                     })
-                    .unwrap_or_else(|| (format!("Btn {}", i + 1), "#333333".to_string()));
+                    .unwrap_or_else(|| {
+                        (
+                            format!("Btn {}", i + 1),
+                            "#333333".to_string(),
+                            RingAnimation::off(),
+                        )
+                    });
+
+                // Render the 12-pixel frame
+                let mut ring = LedRing::default();
+                ring.set(ring_anim);
+                let frame = ring.render(tick);
+                let ring_colors: Vec<String> = frame
+                    .iter()
+                    .map(|px| format!("rgb({},{},{})", px.r, px.g, px.b))
+                    .collect();
+
                 ButtonState {
                     index: i,
                     label,
                     active: button_active[i],
                     color,
+                    ring: ring_colors,
                 }
             })
             .collect();
@@ -218,6 +260,42 @@ impl Pedalboard {
                 ActionStep::SetLed { .. } => {}
             }
         }
+    }
+}
+
+fn color_to_rgb_led(color: &Color) -> Rgb {
+    match color {
+        Color::Off => Rgb::BLACK,
+        Color::Red => Rgb::new(255, 0, 0),
+        Color::Green => Rgb::new(0, 255, 0),
+        Color::Blue => Rgb::new(0, 0, 255),
+        Color::Yellow => Rgb::new(255, 255, 0),
+        Color::Cyan => Rgb::new(0, 255, 255),
+        Color::Magenta => Rgb::new(255, 0, 255),
+        Color::White => Rgb::new(255, 255, 255),
+        Color::Orange => Rgb::new(255, 128, 0),
+        Color::Purple => Rgb::new(128, 0, 255),
+        Color::Custom(r, g, b) => Rgb::new(*r, *g, *b),
+    }
+}
+
+fn build_renderer(color: &Color, renderer_cfg: LedRendererCfg, param: u8) -> Renderer {
+    let rgb = color_to_rgb_led(color);
+    match renderer_cfg {
+        LedRendererCfg::Solid => Renderer::Solid(rgb),
+        LedRendererCfg::Fill => Renderer::Fill(rgb, param.max(1)),
+        LedRendererCfg::Single => Renderer::Single(rgb, param),
+        LedRendererCfg::Dots => Renderer::Dots(rgb, param.max(1)),
+    }
+}
+
+fn anim_to_modifier(anim: LedAnimation) -> Modifier {
+    match anim {
+        LedAnimation::Solid => Modifier::Solid,
+        LedAnimation::Blink => Modifier::Blink,
+        LedAnimation::Pulse => Modifier::Pulse,
+        LedAnimation::Rotate => Modifier::Rotate,
+        LedAnimation::ColorCycle => Modifier::ColorCycle,
     }
 }
 

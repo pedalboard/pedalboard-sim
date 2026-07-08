@@ -521,18 +521,14 @@ body {
     }
 
     // --- Update ring segments ---
-    function updateButtonRing(btnEl, color, active) {
+    function updateButtonRing(btnEl, btn) {
         const segs = btnEl.querySelectorAll('.seg');
-        segs.forEach(seg => {
-            if (active) {
-                seg.setAttribute('stroke', color);
-                seg.style.opacity = '1';
-                seg.style.filter = `drop-shadow(0 0 3px ${color})`;
-            } else {
-                seg.setAttribute('stroke', color);
-                seg.style.opacity = '0.15';
-                seg.style.filter = 'none';
-            }
+        segs.forEach((seg, i) => {
+            const c = btn.ring && btn.ring[i] ? btn.ring[i] : '#333';
+            const isLit = c !== 'rgb(0,0,0)';
+            seg.setAttribute('stroke', isLit ? c : '#222');
+            seg.style.opacity = isLit ? '1' : '0.1';
+            seg.style.filter = isLit ? `drop-shadow(0 0 3px ${c})` : 'none';
         });
     }
 
@@ -573,7 +569,7 @@ body {
             const idx = parseInt(el.dataset.index);
             const btn = s.buttons.find(b => b.index === idx);
             if (btn) {
-                updateButtonRing(el, btn.color, btn.active);
+                updateButtonRing(el, btn);
             }
         });
 

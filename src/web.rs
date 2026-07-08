@@ -170,6 +170,7 @@ fn get_state_json(state: &AppState) -> Option<String> {
                         label: format!("CC {}", 20 + i),
                         active: false,
                         color: "#333333".to_string(),
+                        ring: vec!["rgb(0,0,0)".to_string(); 12],
                     })
                     .collect(),
                 encoders: (0..2)

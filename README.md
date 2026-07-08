@@ -53,10 +53,26 @@ Both TUI and web UI control the same virtual pedalboard simultaneously.
 
 ## MIDI Output
 
-Creates a virtual ALSA MIDI port that any application can connect to:
-- `pedalboard-bridge` (for full audio chain testing)
+Two output modes:
+
+### Virtual ALSA port (default)
+Creates a virtual ALSA sequencer port that any application can connect to:
 - DAW (Ardour, Reaper, etc.)
-- MOD UI (via mod-host)
+- MOD UI (via JACK-MIDI)
+
+### Raw output (`--raw <path>`)
+Writes raw MIDI bytes to a file path (FIFO or device node). Use this for direct pedalboard-bridge integration:
+
+```bash
+# Terminal 1: Create FIFO and start bridge
+mkfifo /tmp/midi-fifo
+pedalboard-bridge -port /tmp/midi-fifo -addr :8080 -audio /etc/pedalboard/audio-patches.json -modhost localhost:5555
+
+# Terminal 2: Start simulator writing to FIFO
+make bridge
+```
+
+The bridge reads raw MIDI bytes from the FIFO exactly as it would from the real RP2040 USB device (`/dev/snd/midiC*D*`). Program Change messages trigger audio patch switching.
 
 ## Makefile
 
