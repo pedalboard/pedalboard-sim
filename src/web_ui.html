@@ -54,27 +54,37 @@ body {
 .board-grid {
     display: grid;
     grid-template-columns: auto 1fr auto 1fr auto;
-    grid-template-rows: auto auto;
+    grid-template-rows: auto auto auto;
     justify-items: center;
     align-items: center;
     gap: 12px 16px;
     width: 100%;
 }
 
-/* Top row: Vol - Mode - Mon - Gain, equally spaced */
+/* Top row: encoders wide apart */
 .top-row {
     grid-column: 1 / 6;
-    grid-row: 1;
     display: flex;
-    justify-content: space-evenly;
+    justify-content: center;
     align-items: center;
-    width: 100%;
+}
+
+.encoders-row {
+    grid-row: 1;
+    gap: 120px;
     padding: 10px 0;
 }
 
+/* LED row: tight pair in center */
+.leds-row {
+    grid-row: 2;
+    gap: 20px;
+    padding: 4px 0;
+}
+
 /* Button + display row */
-.btn-col { grid-row: 2; }
-.oled    { grid-row: 2; }
+.btn-col { grid-row: 3; }
+.oled    { grid-row: 3; }
 
 .indicator-label {
     font-size: 0.55rem;
@@ -371,9 +381,14 @@ body {
 <div class="board" id="board">
     <!-- Single grid layout matching physical positions -->
     <div class="board-grid">
-        <!-- Row 1: Encoders + Indicator LEDs equally spaced: Vol S Mode S Mon S Gain -->
-        <div class="top-row">
+        <!-- Row 1: Encoders (75mm apart) -->
+        <div class="top-row encoders-row">
             <div id="encoder-area-vol"></div>
+            <div id="encoder-area-gain"></div>
+        </div>
+
+        <!-- Row 2: Indicator LEDs (25mm apart, tight center pair) -->
+        <div class="top-row leds-row">
             <div class="indicator-led-wrap">
                 <div class="indicator-led" id="led-mode"></div>
                 <span class="indicator-label">Mode</span>
@@ -382,7 +397,6 @@ body {
                 <div class="indicator-led" id="led-mon"></div>
                 <span class="indicator-label">Mon</span>
             </div>
-            <div id="encoder-area-gain"></div>
         </div>
 
         <!-- Row 3: Buttons + Displays -->
