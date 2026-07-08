@@ -447,7 +447,7 @@ body {
         const segmentLength = circumference / numSegments;
         const dash = segmentLength * 0.75;
 
-        let svg = `<svg class="led-ring" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" style="transform: scaleX(-1)">`;
+        let svg = `<svg class="led-ring" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
         for (let i = 0; i < numSegments; i++) {
             const offset = -(i * segmentLength);
             svg += `<circle class="seg seg-${i}"
