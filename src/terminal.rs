@@ -281,22 +281,39 @@ fn render(
             pb.active_preset(),
             pb.preset_name()
         )?;
-        write!(stdout, "\r\n")?;
-        write!(stdout, "        [Vol]   ○ ○   [Gain]\r\n")?;
+        let snap = pb.snapshot();
+        let enc = &snap.encoders;
+        let vol = if !enc.is_empty() { enc[0].value } else { 0 };
+        let gain = if enc.len() > 1 { enc[1].value } else { 0 };
+        let active = |i: usize| snap.buttons.get(i).map(|b| b.active).unwrap_or(false);
+        let mark = |i: usize| if active(i) { "*" } else { " " };
+
         write!(stdout, "\r\n")?;
         write!(
             stdout,
-            "  (D) {:<8} (E) {:<8} (F) {:<8}\r\n",
+            "      [Vol {:>3}]  ○ ○  [Gain {:>3}]\r\n",
+            vol, gain
+        )?;
+        write!(stdout, "\r\n")?;
+        write!(
+            stdout,
+            " {}(D) {:<8}{}(E) {:<8}{}(F) {:<8}\r\n",
+            mark(3),
             lbl(3),
+            mark(4),
             lbl(4),
+            mark(5),
             lbl(5)
         )?;
         write!(stdout, "\r\n")?;
         write!(
             stdout,
-            "  (A) {:<8} (B) {:<8} (C) {:<8}\r\n",
+            " {}(A) {:<8}{}(B) {:<8}{}(C) {:<8}\r\n",
+            mark(0),
             lbl(0),
+            mark(1),
             lbl(1),
+            mark(2),
             lbl(2)
         )?;
         write!(stdout, "\r\n")?;
