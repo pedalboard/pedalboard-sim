@@ -26,9 +26,9 @@ impl MidiOut {
 pub fn open_output(port_name: &str) -> anyhow::Result<MidiOut> {
     let output = MidiOutput::new("pedalboard-sim")?;
 
-    let conn = output
-        .create_virtual(port_name)
-        .map_err(|e| anyhow::anyhow!("Failed to create virtual MIDI port '{}': {}", port_name, e))?;
+    let conn = output.create_virtual(port_name).map_err(|e| {
+        anyhow::anyhow!("Failed to create virtual MIDI port '{}': {}", port_name, e)
+    })?;
 
     eprintln!("✓ Virtual MIDI port created: \"{}\"", port_name);
     eprintln!("  Connect your DAW or bridge to this port to receive MIDI.");
