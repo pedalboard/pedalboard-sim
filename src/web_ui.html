@@ -50,14 +50,13 @@ body {
 /* --- Encoder area --- */
 .board-grid {
     position: relative;
-    width: 600px;
-    aspect-ratio: 188 / 120;
+    width: 188mm;
+    height: 120mm;
 }
 
-/* All elements positioned absolutely using PCB coordinates.
-   Board: 188×120mm. Origin: bottom-center of board.
-   X% = (X_mm + 94) / 188 * 100
-   Y% = (120 - Y_mm) / 120 * 100
+/* All elements positioned using PCB mm coordinates.
+   left = 94 + X_mm (from center to left edge)
+   top = 120 - Y_mm (Y flipped)
 */
 .board-grid .positioned {
     position: absolute;
@@ -65,26 +64,26 @@ body {
 }
 
 /* Encoders: X=±37.5, Y=97 */
-.pos-enc-vol  { left: 30.05%; top: 19.2%; }  /* (94-37.5)/188, (120-97)/120 */
-.pos-enc-gain { left: 69.95%; top: 19.2%; }  /* (94+37.5)/188 */
+.pos-enc-vol  { left: 56.5mm; top: 23mm; }
+.pos-enc-gain { left: 131.5mm; top: 23mm; }
 
 /* LEDs: X=±12.5, Y=83 */
-.pos-led-mode { left: 43.35%; top: 30.8%; }  /* (94-12.5)/188 */
-.pos-led-mon  { left: 56.65%; top: 30.8%; }  /* (94+12.5)/188 */
+.pos-led-mode { left: 81.5mm; top: 37mm; }
+.pos-led-mon  { left: 106.5mm; top: 37mm; }
 
 /* Top buttons: X=0/±75, Y=64 */
-.pos-btn-d { left: 10.11%; top: 46.7%; }     /* (94-75)/188 */
-.pos-btn-e { left: 50%; top: 46.7%; }        /* 94/188 */
-.pos-btn-f { left: 89.89%; top: 46.7%; }     /* (94+75)/188 */
+.pos-btn-d { left: 19mm; top: 56mm; }
+.pos-btn-e { left: 94mm; top: 56mm; }
+.pos-btn-f { left: 169mm; top: 56mm; }
 
 /* Bottom buttons: X=0/±75, Y=12 */
-.pos-btn-a { left: 10.11%; top: 90%; }       /* (94-75)/188 */
-.pos-btn-b { left: 50%; top: 90%; }          /* 94/188 */
-.pos-btn-c { left: 89.89%; top: 90%; }       /* (94+75)/188 */
+.pos-btn-a { left: 19mm; top: 108mm; }
+.pos-btn-b { left: 94mm; top: 108mm; }
+.pos-btn-c { left: 169mm; top: 108mm; }
 
-/* Displays: X=±37.5, Y≈38 (midpoint between button rows 64 and 12) */
-.pos-oled-l { left: 30.05%; top: 68.3%; }    /* same X as encoders */
-.pos-oled-r { left: 69.95%; top: 68.3%; }
+/* Displays: X=±37.5, Y≈38 (between button rows) */
+.pos-oled-l { left: 56.5mm; top: 82mm; }
+.pos-oled-r { left: 131.5mm; top: 82mm; }
 
 .indicator-label {
     font-size: 0.55rem;
@@ -123,13 +122,13 @@ body {
 
 .encoder-ring {
     position: relative;
-    width: 128px;
-    height: 128px;
+    width: 32mm;
+    height: 32mm;
 }
 
 .encoder-ring svg {
-    width: 128px;
-    height: 128px;
+    width: 32mm;
+    height: 32mm;
     transform: rotate(-135deg);
 }
 
@@ -174,8 +173,8 @@ body {
 /* --- Foot button with LED ring --- */
 .foot-btn {
     position: relative;
-    width: 128px;
-    height: 128px;
+    width: 32mm;
+    height: 32mm;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -183,8 +182,8 @@ body {
 
 .foot-btn svg.led-ring {
     position: absolute;
-    width: 128px;
-    height: 128px;
+    width: 32mm;
+    height: 32mm;
     top: 0;
     left: 0;
 }
