@@ -302,6 +302,7 @@ fn build_renderer(color: &Color, renderer_cfg: LedRendererCfg, param: u8) -> Ren
         LedRendererCfg::Fill => Renderer::Fill(rgb, param.max(1)),
         LedRendererCfg::Single => Renderer::Single(rgb, param),
         LedRendererCfg::Dots => Renderer::Dots(rgb, param.max(1)),
+        LedRendererCfg::Heatmap => Renderer::Heatmap(param),
     }
 }
 
