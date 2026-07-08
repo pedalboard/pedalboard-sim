@@ -32,6 +32,7 @@ pub struct EncoderState {
     pub index: usize,
     pub label: String,
     pub value: u8,
+    pub ring: Vec<String>,
 }
 
 fn color_to_css(color: &Color) -> String {
@@ -233,10 +234,25 @@ impl Pedalboard {
                     .and_then(|p| p.encoders.get(i))
                     .map(|e| e.label.as_str().to_string())
                     .unwrap_or_else(|| ["Vol", "Gain"][i].to_string());
+
+                // Render encoder ring as heatmap (same as firmware)
+                let fill = ((encoder_values[i] as u16 * 12) / 127).min(12) as u8;
+                let mut ring = LedRing::default();
+                ring.set(RingAnimation {
+                    renderer: Renderer::Heatmap(fill),
+                    modifier: Modifier::Solid,
+                });
+                let frame = ring.render(tick);
+                let ring_colors: Vec<String> = frame
+                    .iter()
+                    .map(|px| format!("rgb({},{},{})", px.r, px.g, px.b))
+                    .collect();
+
                 EncoderState {
                     index: i,
                     label,
                     value: encoder_values[i],
+                    ring: ring_colors,
                 }
             })
             .collect();

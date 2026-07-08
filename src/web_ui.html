@@ -532,31 +532,14 @@ body {
         });
     }
 
-    function updateEncoderRing(encEl, value) {
-        const litCount = Math.floor((value / 127) * NUM_SEGMENTS);
+    function updateEncoderRing(encEl, enc) {
         const segs = encEl.querySelectorAll('.seg');
         segs.forEach((seg, i) => {
-            if (i < litCount) {
-                // Heatmap: green → yellow → red
-                const ratio = i / (NUM_SEGMENTS - 1);
-                let color;
-                if (ratio < 0.5) {
-                    const g = Math.round(255);
-                    const r = Math.round(ratio * 2 * 255);
-                    color = `rgb(${r}, ${g}, 0)`;
-                } else {
-                    const r = 255;
-                    const g = Math.round((1 - (ratio - 0.5) * 2) * 255);
-                    color = `rgb(${r}, ${g}, 0)`;
-                }
-                seg.setAttribute('stroke', color);
-                seg.style.opacity = '1';
-                seg.style.filter = `drop-shadow(0 0 2px ${color})`;
-            } else {
-                seg.setAttribute('stroke', '#333');
-                seg.style.opacity = '0.4';
-                seg.style.filter = 'none';
-            }
+            const c = enc.ring && enc.ring[i] ? enc.ring[i] : '#333';
+            const isLit = c !== 'rgb(0,0,0)';
+            seg.setAttribute('stroke', isLit ? c : '#222');
+            seg.style.opacity = isLit ? '1' : '0.1';
+            seg.style.filter = isLit ? `drop-shadow(0 0 3px ${c})` : 'none';
         });
     }
 
@@ -578,7 +561,7 @@ body {
             const idx = parseInt(el.dataset.index);
             const enc = s.encoders.find(e => e.index === idx);
             if (enc) {
-                updateEncoderRing(el, enc.value);
+                updateEncoderRing(el, enc);
                 // Rotate knob indicator
                 const rotation = (enc.value / 127) * 270 - 135;
                 const knob = el.querySelector('.encoder-knob');

@@ -178,6 +178,7 @@ fn get_state_json(state: &AppState) -> Option<String> {
                         index: i,
                         label: ["Vol", "Gain"][i].to_string(),
                         value: 0,
+                        ring: vec!["rgb(0,0,0)".to_string(); 12],
                     })
                     .collect(),
             };
