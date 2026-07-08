@@ -72,6 +72,20 @@ body {
     gap: 12px;
 }
 
+.indicator-led-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.indicator-label {
+    font-size: 0.55rem;
+    color: rgba(200, 220, 200, 0.4);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
 .indicator-led {
     width: 6px;
     height: 6px;
@@ -362,8 +376,14 @@ body {
 <div class="board" id="board">
     <!-- Encoder area: top, between columns 2-3 -->
     <div class="encoder-area" id="encoder-area">
-        <div class="indicator-led" id="led-mode" title="Mode (preset bank)"></div>
-        <div class="indicator-led" id="led-mon" title="Mon (MIDI activity)"></div>
+        <div class="indicator-led-wrap">
+            <div class="indicator-led" id="led-mode"></div>
+            <span class="indicator-label">Mode</span>
+        </div>
+        <div class="indicator-led-wrap">
+            <div class="indicator-led" id="led-mon"></div>
+            <span class="indicator-label">Mon</span>
+        </div>
     </div>
 
     <!-- Main grid: buttons interleaved with displays -->
@@ -389,7 +409,7 @@ body {
     <span id="status-text">Connecting…</span>
 </div>
 
-<div class="help-text">Keys 1–6: buttons &nbsp;|&nbsp; ←→: Vol &nbsp;|&nbsp; ↑↓: Gain</div>
+<div class="help-text">Keys A–F: buttons &nbsp;|&nbsp; ←→: Vol &nbsp;|&nbsp; ↑↓: Gain</div>
 
 <script>
 (function() {
@@ -442,7 +462,7 @@ body {
         el.dataset.index = index;
         el.innerHTML = createLedRingSvg(NUM_SEGMENTS, 48, 6, 110) +
             `<div class="btn-cap" data-index="${index}">
-                <span class="key-hint">${index + 1}</span>
+                <span class="key-hint">${'ABCDEF'[index]}</span>
             </div>`;
 
         const cap = el.querySelector('.btn-cap');
@@ -673,10 +693,11 @@ body {
     document.addEventListener('keydown', e => {
         if (e.repeat || keysHeld[e.code]) return;
         keysHeld[e.code] = true;
+        const btnKey = 'abcdef'.indexOf(e.key.toLowerCase());
 
-        if (e.key >= '1' && e.key <= '6') {
+        if (btnKey >= 0) {
             e.preventDefault();
-            btnDown(parseInt(e.key) - 1);
+            btnDown(btnKey);
         } else if (e.code === 'ArrowLeft') {
             e.preventDefault();
             sendAction({ type: 'encoder_turn', index: 0, clockwise: false });
@@ -694,9 +715,10 @@ body {
 
     document.addEventListener('keyup', e => {
         keysHeld[e.code] = false;
-        if (e.key >= '1' && e.key <= '6') {
+        const btnKey = 'abcdef'.indexOf(e.key.toLowerCase());
+        if (btnKey >= 0) {
             e.preventDefault();
-            btnUp(parseInt(e.key) - 1);
+            btnUp(btnKey);
         }
     });
 
