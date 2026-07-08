@@ -10,7 +10,7 @@ use crossterm::{
 use std::io::{self, Write};
 use std::sync::{Arc, Mutex};
 
-use pedalboard_protocol::config::Config;
+use midi_controller::config::Config;
 
 use crate::midi::MidiOut;
 use crate::sim::Pedalboard;

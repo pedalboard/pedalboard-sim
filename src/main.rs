@@ -66,7 +66,7 @@ fn main() -> anyhow::Result<()> {
 
 fn run_with_web(
     midi_out: midi::MidiOut,
-    config: Option<pedalboard_protocol::config::Config>,
+    config: Option<midi_controller::config::Config>,
     preset_index: usize,
     addr: String,
 ) -> anyhow::Result<()> {

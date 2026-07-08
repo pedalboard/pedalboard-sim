@@ -660,6 +660,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
+name = "midi-controller"
+version = "0.1.0"
+dependencies = [
+ "heapless 0.9.3",
+ "postcard",
+ "serde",
+]
+
+[[package]]
 name = "midir"
 version = "0.10.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -755,15 +764,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pedalboard-protocol"
-version = "0.1.0"
-dependencies = [
- "heapless 0.9.3",
- "postcard",
- "serde",
-]
-
-[[package]]
 name = "pedalboard-sim"
 version = "0.1.0"
 dependencies = [
@@ -772,8 +772,8 @@ dependencies = [
  "clap",
  "crossterm",
  "heapless 0.9.3",
+ "midi-controller",
  "midir",
- "pedalboard-protocol",
  "postcard",
  "serde",
  "serde_json",
