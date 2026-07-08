@@ -51,26 +51,27 @@ body {
 }
 
 /* --- Encoder area --- */
-.encoder-area {
-    display: flex;
-    justify-content: center;
+.board-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto 1fr auto;
+    grid-template-rows: auto auto auto;
+    justify-items: center;
     align-items: center;
-    gap: 100px;
-    padding: 10px 0;
+    gap: 12px 16px;
+    width: 100%;
 }
 
-.indicator-leds {
-    display: flex;
-    justify-content: center;
-    gap: 24px;
-}
+/* Encoder row: span display columns */
+.grid-encoder-vol  { grid-column: 2; grid-row: 1; }
+.grid-encoder-gain { grid-column: 4; grid-row: 1; }
 
-.indicator-led-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-}
+/* Indicator LED row */
+.grid-led-mode { grid-column: 2; grid-row: 2; }
+.grid-led-mon  { grid-column: 4; grid-row: 2; }
+
+/* Button + display row */
+.btn-col { grid-row: 3; }
+.oled    { grid-row: 3; }
 
 .indicator-label {
     font-size: 0.55rem;
@@ -93,12 +94,11 @@ body {
     background: var(--led-color, #0f0);
 }
 
-.main-area {
+.indicator-led-wrap {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 16px;
-    width: 100%;
+    gap: 3px;
 }
 
 .encoder {
@@ -351,11 +351,10 @@ body {
     .board {
         padding: 24px 16px;
     }
-    .main-area { gap: 10px; }
+    .board-grid { gap: 8px 10px; }
     .foot-btn { width: 90px; height: 90px; }
     .foot-btn svg.led-ring { width: 90px; height: 90px; }
     .foot-btn .btn-cap { width: 52px; height: 52px; }
-    .encoder-area { gap: 40px; }
     .encoder-ring { width: 60px; height: 60px; }
     .encoder-ring svg { width: 60px; height: 60px; }
     .encoder-knob { width: 40px; height: 40px; margin: -20px 0 0 -20px; }
@@ -367,22 +366,27 @@ body {
 <body>
 
 <div class="board" id="board">
-    <!-- Encoder area: top, between columns 2-3 -->
-    <div class="encoder-area" id="encoder-area">
-    </div>
-    <div class="indicator-leds">
-        <div class="indicator-led-wrap">
-            <div class="indicator-led" id="led-mode"></div>
-            <span class="indicator-label">Mode</span>
-        </div>
-        <div class="indicator-led-wrap">
-            <div class="indicator-led" id="led-mon"></div>
-            <span class="indicator-label">Mon</span>
-        </div>
-    </div>
+    <!-- Single grid layout matching physical positions -->
+    <div class="board-grid">
+        <!-- Row 1: Encoders (in display columns) -->
+        <div class="grid-encoder-vol" id="encoder-area-vol"></div>
+        <div class="grid-encoder-gain" id="encoder-area-gain"></div>
 
-    <!-- Main grid: buttons interleaved with displays -->
-    <div class="main-area">
+        <!-- Row 2: Indicator LEDs -->
+        <div class="grid-led-mode">
+            <div class="indicator-led-wrap">
+                <div class="indicator-led" id="led-mode"></div>
+                <span class="indicator-label">Mode</span>
+            </div>
+        </div>
+        <div class="grid-led-mon">
+            <div class="indicator-led-wrap">
+                <div class="indicator-led" id="led-mon"></div>
+                <span class="indicator-label">Mon</span>
+            </div>
+        </div>
+
+        <!-- Row 3: Buttons + Displays -->
         <div class="btn-col" id="col-1"></div>
         <div class="oled" id="oled-left">
             <div class="oled-title">—</div>
@@ -501,9 +505,9 @@ body {
         COL_2.forEach(idx => document.getElementById('col-2').appendChild(createFootButton(idx)));
         COL_3.forEach(idx => document.getElementById('col-3').appendChild(createFootButton(idx)));
 
-        const encoderArea = document.getElementById('encoder-area');
+        const encoderArea = document.getElementById('encoder-area-vol');
         encoderArea.appendChild(createEncoder(0));
-        encoderArea.appendChild(createEncoder(1));
+        document.getElementById('encoder-area-gain').appendChild(createEncoder(1));
     }
 
     // --- Update ring segments ---
