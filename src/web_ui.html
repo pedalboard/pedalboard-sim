@@ -497,9 +497,6 @@ body {
 
     // --- Build static DOM ---
     function buildLayout() {
-        // Columns populated above via COL_1, COL_2, COL_3
-        const encoderArea = document.getElementById('encoder-area');
-
         COL_1.forEach(idx => document.getElementById('col-1').appendChild(createFootButton(idx)));
         COL_2.forEach(idx => document.getElementById('col-2').appendChild(createFootButton(idx)));
         COL_3.forEach(idx => document.getElementById('col-3').appendChild(createFootButton(idx)));
