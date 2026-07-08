@@ -59,7 +59,7 @@ async fn ws_handler(
 async fn handle_ws(mut socket: WebSocket, state: AppState) {
     // Send initial state
     if let Some(json) = get_state_json(&state) {
-        if socket.send(Message::Text(json.into())).await.is_err() {
+        if socket.send(Message::Text(json)).await.is_err() {
             return;
         }
     }
@@ -73,7 +73,7 @@ async fn handle_ws(mut socket: WebSocket, state: AppState) {
                 match result {
                     Ok(()) => {
                         if let Some(json) = get_state_json(&state) {
-                            if socket.send(Message::Text(json.into())).await.is_err() {
+                            if socket.send(Message::Text(json)).await.is_err() {
                                 break;
                             }
                         }
@@ -81,7 +81,7 @@ async fn handle_ws(mut socket: WebSocket, state: AppState) {
                     Err(broadcast::error::RecvError::Lagged(_)) => {
                         // Missed some updates, send current state
                         if let Some(json) = get_state_json(&state) {
-                            if socket.send(Message::Text(json.into())).await.is_err() {
+                            if socket.send(Message::Text(json)).await.is_err() {
                                 break;
                             }
                         }

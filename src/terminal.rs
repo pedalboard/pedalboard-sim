@@ -142,7 +142,7 @@ pub fn run_shared(
 
     {
         let pb = pedalboard.lock().unwrap();
-        render(&mut stdout, &*pb, &last_action)?;
+        render(&mut stdout, &pb, &last_action)?;
     }
 
     loop {
@@ -254,7 +254,7 @@ pub fn run_shared(
 
                 {
                     let pb = pedalboard.lock().unwrap();
-                    render(&mut stdout, &*pb, &last_action)?;
+                    render(&mut stdout, &pb, &last_action)?;
                 }
             }
         }
@@ -285,14 +285,14 @@ fn render(
         )?;
         write!(stdout, "+-------------------------------------------+\r\n")?;
         let labels = pb.button_labels();
-        for i in 0..6 {
+        for (i, _key) in BUTTON_KEYS.iter().enumerate() {
             let label = labels.get(i).copied().unwrap_or(BUTTON_LABELS[i]);
             write!(stdout, "|  [{}]  {:<36}|\r\n", BUTTON_KEYS[i], label)?;
         }
     } else {
         write!(stdout, "|  No config loaded (raw MIDI mode)         |\r\n")?;
         write!(stdout, "+-------------------------------------------+\r\n")?;
-        for i in 0..6 {
+        for (i, _key) in BUTTON_KEYS.iter().enumerate() {
             write!(stdout, "|  [{}]  CC {:<33}|\r\n", BUTTON_KEYS[i], 20 + i)?;
         }
     }
