@@ -442,7 +442,9 @@ body {
         const cx = size / 2;
         const cy = size / 2;
         const circumference = 2 * Math.PI * radius;
-        const segmentLength = circumference / numSegments;
+        const arcFraction = 300 / 360; // 7 o'clock to 5 o'clock = 300°
+        const arcLength = circumference * arcFraction;
+        const segmentLength = arcLength / numSegments;
         const gap = segmentLength * 0.2;
         const dash = segmentLength - gap;
 
