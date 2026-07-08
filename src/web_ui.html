@@ -438,18 +438,18 @@ body {
     const statusText = document.getElementById('status-text');
 
     // --- LED Ring SVG generation ---
+    // 12 segments in full 360° circle, rotated so seg 0 = 7 o'clock.
+    // Segment 11 (6 o'clock) is never lit (connector position).
     function createLedRingSvg(numSegments, radius, strokeWidth, size) {
         const cx = size / 2;
         const cy = size / 2;
         const circumference = 2 * Math.PI * radius;
-        const arcDegrees = 300; // 7 o'clock to 5 o'clock
-        const arcLength = circumference * arcDegrees / 360;
-        const stepLength = arcLength / numSegments; // distance between segment centers
-        const dash = stepLength * 0.75; // visible part of each segment
+        const segmentLength = circumference / numSegments;
+        const dash = segmentLength * 0.75;
 
         let svg = `<svg class="led-ring" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" style="transform: rotate(120deg)">`;
         for (let i = 0; i < numSegments; i++) {
-            const offset = -(i * stepLength);
+            const offset = -(i * segmentLength);
             svg += `<circle class="seg seg-${i}"
                 cx="${cx}" cy="${cy}" r="${radius}"
                 fill="none"
