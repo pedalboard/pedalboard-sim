@@ -56,6 +56,30 @@ body {
     justify-content: center;
     gap: 100px;
     padding: 10px 0;
+    position: relative;
+}
+
+.indicator-leds {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    gap: 12px;
+}
+
+.indicator-led {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #222;
+    border: 1px solid #444;
+    transition: background 0.1s, box-shadow 0.1s;
+}
+
+.indicator-led.active {
+    box-shadow: 0 0 6px var(--led-color, #0f0);
+    background: var(--led-color, #0f0);
 }
 
 .main-area {
@@ -338,7 +362,12 @@ body {
 
 <div class="board" id="board">
     <!-- Encoder area: top, between columns 2-3 -->
-    <div class="encoder-area" id="encoder-area"></div>
+    <div class="encoder-area" id="encoder-area">
+        <div class="indicator-leds" id="indicator-leds">
+            <div class="indicator-led" id="led-mode" title="Mode (preset bank)"></div>
+            <div class="indicator-led" id="led-mon" title="Mon (MIDI activity)"></div>
+        </div>
+    </div>
 
     <!-- Main grid: 3 button columns with displays between col 2 and 3 -->
     <div class="main-area">
@@ -545,8 +574,28 @@ body {
         renderOled('oled-left', s.preset_name, DISPLAY_LEFT, s.buttons);
         renderOled('oled-right', s.preset_name, DISPLAY_RIGHT, s.buttons);
 
+        // Update indicator LEDs
+        updateIndicatorLeds(s);
+
         // Preset bar
         renderPresetBar(s);
+    }
+
+    const PRESET_COLORS = ['#00ff00','#0000ff','#ff0000','#ffff00','#00ffff','#ff00ff','#ff8800','#ffffff'];
+
+    function updateIndicatorLeds(s) {
+        // Mode LED: color based on preset bank
+        const modeLed = document.getElementById('led-mode');
+        const color = PRESET_COLORS[s.active_preset % PRESET_COLORS.length];
+        modeLed.style.setProperty('--led-color', color);
+        modeLed.classList.add('active');
+
+        // Mon LED: flash briefly on any state update (MIDI activity)
+        const monLed = document.getElementById('led-mon');
+        monLed.style.setProperty('--led-color', '#00ff00');
+        monLed.classList.add('active');
+        clearTimeout(monLed._timer);
+        monLed._timer = setTimeout(() => monLed.classList.remove('active'), 80);
     }
 
     function renderOled(id, presetName, indices, buttons) {
