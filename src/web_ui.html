@@ -525,8 +525,8 @@ body {
         const segs = btnEl.querySelectorAll('.seg');
         segs.forEach((seg, i) => {
             // SVG segment i is at clock hour i (0=12h, 1=1h, ...)
-            // Physical LED index: (hour + 3) % 12 (D1 starts at 3 o'clock)
-            const physIdx = (i + 3) % 12;
+            // Physical LED index: (hour - 3 + 12) % 12 (D1 starts at 3 o'clock, goes CW)
+            const physIdx = (i - 3 + 12) % 12;
             const c = btn.ring && btn.ring[physIdx] ? btn.ring[physIdx] : '#333';
             const isLit = c !== 'rgb(0,0,0)';
             seg.setAttribute('stroke', isLit ? c : '#222');
@@ -538,7 +538,7 @@ body {
     function updateEncoderRing(encEl, enc) {
         const segs = encEl.querySelectorAll('.seg');
         segs.forEach((seg, i) => {
-            const physIdx = (i + 3) % 12;
+            const physIdx = (i - 3 + 12) % 12;
             const c = enc.ring && enc.ring[physIdx] ? enc.ring[physIdx] : '#333';
             const isLit = c !== 'rgb(0,0,0)';
             seg.setAttribute('stroke', isLit ? c : '#222');
