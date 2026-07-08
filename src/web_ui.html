@@ -446,9 +446,8 @@ body {
         const gap = segmentLength * 0.2;
         const dash = segmentLength - gap;
 
-        let svg = `<svg class="led-ring" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
+        let svg = `<svg class="led-ring" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" style="transform: rotate(120deg)">`;
         for (let i = 0; i < numSegments; i++) {
-            const angle = (i / numSegments) * 360 + 120;
             svg += `<circle class="seg seg-${i}"
                 cx="${cx}" cy="${cy}" r="${radius}"
                 fill="none"
