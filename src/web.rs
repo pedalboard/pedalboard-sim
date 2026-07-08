@@ -175,7 +175,7 @@ fn get_state_json(state: &AppState) -> Option<String> {
                 encoders: (0..2)
                     .map(|i| crate::sim::EncoderState {
                         index: i,
-                        label: format!("Enc {}", i),
+                        label: ["Vol", "Gain"][i].to_string(),
                         value: 0,
                     })
                     .collect(),

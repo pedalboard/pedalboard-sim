@@ -190,7 +190,7 @@ impl Pedalboard {
                 let label = preset
                     .and_then(|p| p.encoders.get(i))
                     .map(|e| e.label.as_str().to_string())
-                    .unwrap_or_else(|| format!("Enc {}", i));
+                    .unwrap_or_else(|| ["Vol", "Gain"][i].to_string());
                 EncoderState {
                     index: i,
                     label,

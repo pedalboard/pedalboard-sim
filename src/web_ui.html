@@ -53,17 +53,10 @@ body {
 /* --- Encoder area --- */
 .encoder-area {
     display: flex;
-    justify-content: center;
+    justify-content: space-evenly;
     align-items: center;
-    gap: 0;
     padding: 10px 0;
-    width: 60%;
-}
-
-.encoder-area > * {
-    flex: 1;
-    display: flex;
-    justify-content: center;
+    width: 70%;
 }
 
 .indicator-leds {
@@ -509,7 +502,9 @@ body {
         COL_2.forEach(idx => document.getElementById('col-2').appendChild(createFootButton(idx)));
         COL_3.forEach(idx => document.getElementById('col-3').appendChild(createFootButton(idx)));
 
-        encoderArea.appendChild(createEncoder(0));
+        const encoderArea = document.getElementById('encoder-area');
+        const modeLed = document.getElementById('led-mode').parentElement;
+        encoderArea.insertBefore(createEncoder(0), modeLed);
         encoderArea.appendChild(createEncoder(1));
     }
 
