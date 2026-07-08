@@ -1,6 +1,6 @@
 use pedalboard_protocol::config::{Color, Config};
 use pedalboard_protocol::controller::{Controller, ControllerResult, InputEvent};
-use pedalboard_protocol::engine::{ActionStep, SystemAction};
+use pedalboard_protocol::engine::ActionStep;
 use pedalboard_protocol::long_press::Edge;
 use serde::Serialize;
 use std::time::Instant;
@@ -51,7 +51,6 @@ fn color_to_css(color: &Color) -> String {
 /// Simulated pedalboard — wraps the protocol crate's Controller.
 pub struct Pedalboard {
     pub config: Config,
-    pub active_preset: usize,
     controller: Controller,
     start_time: Instant,
 }
@@ -59,109 +58,96 @@ pub struct Pedalboard {
 impl Pedalboard {
     pub fn new(config: Config, preset_index: usize) -> Self {
         let mut ctrl = Controller::new();
-        // Switch to the requested preset
         if preset_index > 0 && preset_index < config.presets.len() {
-            if let Some(preset) = config.presets.get(preset_index) {
-                ctrl.switch_preset(preset_index as u8, preset);
-            }
+            ctrl.switch_to(preset_index as u8, &config);
         }
         Self {
             config,
-            active_preset: preset_index,
             controller: ctrl,
             start_time: Instant::now(),
         }
     }
 
-    /// Current monotonic time in milliseconds.
     fn now_ms(&self) -> u32 {
         self.start_time.elapsed().as_millis() as u32
     }
 
-    /// Get the current preset name
+    /// Get the active preset index.
+    pub fn active_preset(&self) -> usize {
+        self.controller.active_preset() as usize
+    }
+
+    /// Get the current preset name.
     pub fn preset_name(&self) -> &str {
         self.config
             .presets
-            .get(self.active_preset)
+            .get(self.active_preset())
             .map(|p| p.name.as_str())
             .unwrap_or("(none)")
     }
 
-    /// Process a button press (activate edge) and emit MIDI.
+    /// Process a button press and emit MIDI.
     pub fn press_button(&mut self, button_index: usize, midi: &mut MidiOut) {
-        if let Some(preset) = self.config.presets.get(self.active_preset) {
-            let now = self.now_ms();
-            let result = self.controller.process(
-                InputEvent::ButtonEdge {
-                    index: button_index as u8,
-                    edge: Edge::Activate,
-                },
-                now,
-                preset,
-            );
-            self.emit_result(&result, midi);
-        }
+        let now = self.now_ms();
+        let result = self.controller.process(
+            InputEvent::ButtonEdge {
+                index: button_index as u8,
+                edge: Edge::Activate,
+            },
+            now,
+            &self.config,
+        );
+        self.emit_result(&result, midi);
     }
 
-    /// Process a button release (deactivate edge) and emit MIDI.
+    /// Process a button release and emit MIDI.
     pub fn release_button(&mut self, button_index: usize, midi: &mut MidiOut) {
-        if let Some(preset) = self.config.presets.get(self.active_preset) {
-            let now = self.now_ms();
-            let result = self.controller.process(
-                InputEvent::ButtonEdge {
-                    index: button_index as u8,
-                    edge: Edge::Deactivate,
-                },
-                now,
-                preset,
-            );
-            self.emit_result(&result, midi);
-        }
+        let now = self.now_ms();
+        let result = self.controller.process(
+            InputEvent::ButtonEdge {
+                index: button_index as u8,
+                edge: Edge::Deactivate,
+            },
+            now,
+            &self.config,
+        );
+        self.emit_result(&result, midi);
     }
 
-    /// Tick the controller for long-press detection. Call periodically while buttons are held.
+    /// Tick for long-press detection.
     pub fn tick(&mut self, midi: &mut MidiOut) {
         if self.controller.any_active() {
-            if let Some(preset) = self.config.presets.get(self.active_preset) {
-                let now = self.now_ms();
-                let result = self.controller.tick(now, preset);
-                self.emit_result(&result, midi);
-            }
+            let now = self.now_ms();
+            let result = self.controller.tick(now, &self.config);
+            self.emit_result(&result, midi);
         }
     }
 
     /// Process an encoder turn and emit MIDI.
-    /// Encoder acceleration is handled automatically by the Controller.
     pub fn turn_encoder(&mut self, encoder_index: usize, clockwise: bool, midi: &mut MidiOut) {
-        if let Some(preset) = self.config.presets.get(self.active_preset) {
-            let now = self.now_ms();
-            let result = self.controller.process(
-                InputEvent::EncoderTurn {
-                    index: encoder_index as u8,
-                    clockwise,
-                },
-                now,
-                preset,
-            );
-            self.emit_result(&result, midi);
-        }
+        let now = self.now_ms();
+        let result = self.controller.process(
+            InputEvent::EncoderTurn {
+                index: encoder_index as u8,
+                clockwise,
+            },
+            now,
+            &self.config,
+        );
+        self.emit_result(&result, midi);
     }
 
-    /// Switch to a different preset
-    pub fn switch_preset(&mut self, index: usize) {
-        if index < self.config.presets.len() {
-            if let Some(preset) = self.config.presets.get(index) {
-                self.controller.switch_preset(index as u8, preset);
-            }
-            self.active_preset = index;
-        }
+    /// Switch to a specific preset.
+    pub fn switch_preset(&mut self, index: usize, midi: &mut MidiOut) {
+        let result = self.controller.switch_to(index as u8, &self.config);
+        self.emit_result(&result, midi);
     }
 
-    /// Get button labels for the current preset
+    /// Get button labels for the current preset.
     pub fn button_labels(&self) -> Vec<&str> {
         self.config
             .presets
-            .get(self.active_preset)
+            .get(self.active_preset())
             .map(|p| p.buttons.iter().map(|b| b.label.as_str()).collect())
             .unwrap_or_default()
     }
@@ -171,9 +157,9 @@ impl Pedalboard {
         self.controller.any_active()
     }
 
-    /// Create a serializable state snapshot for the web UI
+    /// Create a serializable state snapshot for the web UI.
     pub fn snapshot(&self) -> SimState {
-        let preset = self.config.presets.get(self.active_preset);
+        let preset = self.config.presets.get(self.active_preset());
         let button_active = self.controller.button_active();
         let encoder_values = self.controller.encoder_values();
 
@@ -214,7 +200,7 @@ impl Pedalboard {
             .collect();
 
         SimState {
-            active_preset: self.active_preset,
+            active_preset: self.active_preset(),
             preset_name: self.preset_name().to_string(),
             num_presets: self.config.presets.len(),
             buttons,
@@ -222,36 +208,14 @@ impl Pedalboard {
         }
     }
 
-    /// Emit MIDI from a ControllerResult and handle system actions.
-    fn emit_result(&mut self, result: &ControllerResult, midi: &mut MidiOut) {
+    fn emit_result(&self, result: &ControllerResult, midi: &mut MidiOut) {
         for step in &result.midi {
             match step {
                 ActionStep::Send(msg) => {
                     midi.send(&msg.data[..msg.len]);
                 }
-                ActionStep::Delay(_ms) => {}
+                ActionStep::Delay(_) => {}
                 ActionStep::SetLed { .. } => {}
-            }
-        }
-        // Handle system actions (preset switching)
-        for action in &result.system {
-            match action {
-                SystemAction::PresetNext => {
-                    let next = (self.active_preset + 1) % self.config.presets.len();
-                    self.switch_preset(next);
-                }
-                SystemAction::PresetPrev => {
-                    let prev = if self.active_preset == 0 {
-                        self.config.presets.len() - 1
-                    } else {
-                        self.active_preset - 1
-                    };
-                    self.switch_preset(prev);
-                }
-                SystemAction::PresetSelect(idx) => {
-                    self.switch_preset(*idx as usize);
-                }
-                _ => {}
             }
         }
     }

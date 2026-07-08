@@ -107,9 +107,10 @@ pub fn run(mut midi: MidiOut, config: Option<Config>, preset_index: usize) -> an
                     } => {
                         let index = (n - 1) as usize;
                         if let Some(ref mut pb) = pedalboard {
-                            pb.switch_preset(index);
+                            pb.switch_preset(index, &mut midi);
+                        } else {
+                            midi.program_change(0, index as u8);
                         }
-                        midi.program_change(0, index as u8);
                         last_action = format!("Switched to preset {}", index);
                     }
 
@@ -237,9 +238,10 @@ pub fn run_shared(
                             let mut pb = pedalboard.lock().unwrap();
                             let mut m = midi.lock().unwrap();
                             if let Some(ref mut pb) = *pb {
-                                pb.switch_preset(index);
+                                pb.switch_preset(index, &mut m);
+                            } else {
+                                m.program_change(0, index as u8);
                             }
-                            m.program_change(0, index as u8);
                         }
                         last_action = format!("Switched to preset {}", index);
                     }
@@ -278,7 +280,7 @@ fn render(
         write!(
             stdout,
             "|  Preset {}: {:<30}|\r\n",
-            pb.active_preset,
+            pb.active_preset(),
             pb.preset_name()
         )?;
         write!(stdout, "+-------------------------------------------+\r\n")?;

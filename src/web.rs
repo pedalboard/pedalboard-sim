@@ -146,9 +146,10 @@ fn handle_action(state: &AppState, action: ClientAction) {
         }
         ClientAction::PresetSelect { index } => {
             if let Some(ref mut pb) = *pb {
-                pb.switch_preset(index);
+                pb.switch_preset(index, &mut midi);
+            } else {
+                midi.program_change(0, index as u8);
             }
-            midi.program_change(0, index as u8);
         }
     }
 }
