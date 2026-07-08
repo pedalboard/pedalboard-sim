@@ -449,7 +449,7 @@ body {
 
         let svg = `<svg class="led-ring" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" style="transform: rotate(-90deg)">`;
         for (let i = 0; i < numSegments; i++) {
-            const offset = -(i * segmentLength);
+            const offset = -(i * segmentLength) + dash / 2;
             svg += `<circle class="seg seg-${i}"
                 cx="${cx}" cy="${cy}" r="${radius}"
                 fill="none"
