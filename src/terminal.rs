@@ -15,7 +15,6 @@ use pedalboard_protocol::config::Config;
 use crate::midi::MidiOut;
 use crate::sim::Pedalboard;
 
-const BUTTON_KEYS: &[char] = &['1', '2', '3', '4', '5', '6'];
 const BUTTON_LABELS: &[&str] = &["A", "B", "C", "D", "E", "F"];
 
 /// Run the TUI without shared state (standalone mode, no web server).
@@ -48,10 +47,10 @@ pub fn run(mut midi: MidiOut, config: Option<Config>, preset_index: usize) -> an
 
                     // Button press (1-6)
                     KeyEvent {
-                        code: KeyCode::Char(c @ '1'..='6'),
+                        code: KeyCode::Char(c @ 'a'..='f'),
                         ..
                     } => {
-                        let index = (c as u8 - b'1') as usize;
+                        let index = (c as u8 - b'a') as usize;
                         if let Some(ref mut pb) = pedalboard {
                             pb.press_button(index, &mut midi);
                             pb.release_button(index, &mut midi);
@@ -164,10 +163,10 @@ pub fn run_shared(
 
                     // Button press (1-6)
                     KeyEvent {
-                        code: KeyCode::Char(c @ '1'..='6'),
+                        code: KeyCode::Char(c @ 'a'..='f'),
                         ..
                     } => {
-                        let index = (c as u8 - b'1') as usize;
+                        let index = (c as u8 - b'a') as usize;
                         {
                             let mut pb = pedalboard.lock().unwrap();
                             let mut m = midi.lock().unwrap();
@@ -272,37 +271,58 @@ fn render(
 ) -> io::Result<()> {
     execute!(io::stdout(), cursor::MoveTo(0, 0), Clear(ClearType::All))?;
 
-    write!(stdout, "+-------------------------------------------+\r\n")?;
-    write!(stdout, "|  PEDALBOARD SIMULATOR                     |\r\n")?;
-    write!(stdout, "+-------------------------------------------+\r\n")?;
-
     if let Some(pb) = pedalboard {
+        let labels = pb.button_labels();
+        let lbl = |i: usize| labels.get(i).copied().unwrap_or(BUTTON_LABELS[i]);
+
         write!(
             stdout,
-            "|  Preset {}: {:<30}|\r\n",
+            " Preset {}: {}\r\n",
             pb.active_preset(),
             pb.preset_name()
         )?;
-        write!(stdout, "+-------------------------------------------+\r\n")?;
-        let labels = pb.button_labels();
-        for (i, _key) in BUTTON_KEYS.iter().enumerate() {
-            let label = labels.get(i).copied().unwrap_or(BUTTON_LABELS[i]);
-            write!(stdout, "|  [{}]  {:<36}|\r\n", BUTTON_KEYS[i], label)?;
-        }
+        write!(stdout, "\r\n")?;
+        write!(stdout, "          [Vol]   ○ ○   [Gain]\r\n")?;
+        write!(stdout, "\r\n")?;
+        write!(
+            stdout,
+            "  (D) {:<8}  ┌──────┐  (E) {:<8}  ┌──────┐  (F) {:<8}\r\n",
+            lbl(3),
+            lbl(4),
+            lbl(5)
+        )?;
+        write!(stdout, "               │      │               │      │\r\n")?;
+        write!(
+            stdout,
+            "  (A) {:<8}  └──────┘  (B) {:<8}  └──────┘  (C) {:<8}\r\n",
+            lbl(0),
+            lbl(1),
+            lbl(2)
+        )?;
+        write!(stdout, "\r\n")?;
     } else {
-        write!(stdout, "|  No config loaded (raw MIDI mode)         |\r\n")?;
-        write!(stdout, "+-------------------------------------------+\r\n")?;
-        for (i, _key) in BUTTON_KEYS.iter().enumerate() {
-            write!(stdout, "|  [{}]  CC {:<33}|\r\n", BUTTON_KEYS[i], 20 + i)?;
-        }
+        write!(stdout, " No config (raw MIDI mode)\r\n")?;
+        write!(stdout, "\r\n")?;
+        write!(stdout, "          [Vol]   ○ ○   [Gain]\r\n")?;
+        write!(stdout, "\r\n")?;
+        write!(
+            stdout,
+            "  (D) CC23   ┌──────┐  (E) CC24   ┌──────┐  (F) CC25\r\n"
+        )?;
+        write!(stdout, "             │      │             │      │\r\n")?;
+        write!(
+            stdout,
+            "  (A) CC20   └──────┘  (B) CC21   └──────┘  (C) CC22\r\n"
+        )?;
+        write!(stdout, "\r\n")?;
     }
 
-    write!(stdout, "+-------------------------------------------+\r\n")?;
-    write!(stdout, "|  <-/->  Encoder 0   up/dn  Encoder 1      |\r\n")?;
-    write!(stdout, "|  F1-F9  Switch preset       q  Quit       |\r\n")?;
-    write!(stdout, "+-------------------------------------------+\r\n")?;
-    write!(stdout, "|  > {:<39}|\r\n", last_action)?;
-    write!(stdout, "+-------------------------------------------+\r\n")?;
+    write!(
+        stdout,
+        " ─────────────────────────────────────────────────────\r\n"
+    )?;
+    write!(stdout, "  A-F: buttons  ←→: Vol  ↑↓: Gain  q: quit\r\n")?;
+    write!(stdout, "  > {}\r\n", last_action)?;
 
     stdout.flush()?;
     Ok(())
