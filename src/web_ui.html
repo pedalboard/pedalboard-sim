@@ -53,16 +53,16 @@ body {
 /* --- Encoder area --- */
 .encoder-area {
     display: flex;
-    justify-content: space-evenly;
+    justify-content: center;
     align-items: center;
+    gap: 100px;
     padding: 10px 0;
-    width: 70%;
 }
 
 .indicator-leds {
     display: flex;
     justify-content: center;
-    gap: 12px;
+    gap: 24px;
 }
 
 .indicator-led-wrap {
@@ -369,6 +369,8 @@ body {
 <div class="board" id="board">
     <!-- Encoder area: top, between columns 2-3 -->
     <div class="encoder-area" id="encoder-area">
+    </div>
+    <div class="indicator-leds">
         <div class="indicator-led-wrap">
             <div class="indicator-led" id="led-mode"></div>
             <span class="indicator-label">Mode</span>
@@ -503,8 +505,7 @@ body {
         COL_3.forEach(idx => document.getElementById('col-3').appendChild(createFootButton(idx)));
 
         const encoderArea = document.getElementById('encoder-area');
-        const modeLed = document.getElementById('led-mode').parentElement;
-        encoderArea.insertBefore(createEncoder(0), modeLed);
+        encoderArea.appendChild(createEncoder(0));
         encoderArea.appendChild(createEncoder(1));
     }
 
