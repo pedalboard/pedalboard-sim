@@ -129,7 +129,6 @@ body {
 .encoder-ring svg {
     width: 24mm;
     height: 24mm;
-    transform: rotate(-135deg);
 }
 
 .encoder-knob {
@@ -449,7 +448,7 @@ body {
 
         let svg = `<svg class="led-ring" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
         for (let i = 0; i < numSegments; i++) {
-            const angle = (i / numSegments) * 360 - 90;
+            const angle = (i / numSegments) * 360;
             svg += `<circle class="seg seg-${i}"
                 cx="${cx}" cy="${cy}" r="${radius}"
                 fill="none"
