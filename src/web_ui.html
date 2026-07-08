@@ -54,8 +54,16 @@ body {
 .encoder-area {
     display: flex;
     justify-content: center;
-    gap: 100px;
+    align-items: center;
+    gap: 0;
     padding: 10px 0;
+    width: 60%;
+}
+
+.encoder-area > * {
+    flex: 1;
+    display: flex;
+    justify-content: center;
 }
 
 .indicator-leds {
@@ -354,8 +362,6 @@ body {
 <div class="board" id="board">
     <!-- Encoder area: top, between columns 2-3 -->
     <div class="encoder-area" id="encoder-area">
-    </div>
-    <div class="indicator-leds" id="indicator-leds">
         <div class="indicator-led" id="led-mode" title="Mode (preset bank)"></div>
         <div class="indicator-led" id="led-mon" title="Mon (MIDI activity)"></div>
     </div>
