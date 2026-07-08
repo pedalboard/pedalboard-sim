@@ -56,15 +56,11 @@ body {
     justify-content: center;
     gap: 100px;
     padding: 10px 0;
-    position: relative;
 }
 
 .indicator-leds {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     display: flex;
+    justify-content: center;
     gap: 12px;
 }
 
@@ -202,11 +198,6 @@ body {
 }
 
 /* --- OLED displays --- */
-.display-area {
-    display: flex;
-    gap: 16px;
-    align-items: stretch;
-}
 
 .oled {
     background: #000;
@@ -363,23 +354,21 @@ body {
 <div class="board" id="board">
     <!-- Encoder area: top, between columns 2-3 -->
     <div class="encoder-area" id="encoder-area">
-        <div class="indicator-leds" id="indicator-leds">
-            <div class="indicator-led" id="led-mode" title="Mode (preset bank)"></div>
-            <div class="indicator-led" id="led-mon" title="Mon (MIDI activity)"></div>
-        </div>
+    </div>
+    <div class="indicator-leds" id="indicator-leds">
+        <div class="indicator-led" id="led-mode" title="Mode (preset bank)"></div>
+        <div class="indicator-led" id="led-mon" title="Mon (MIDI activity)"></div>
     </div>
 
-    <!-- Main grid: 3 button columns with displays between col 2 and 3 -->
+    <!-- Main grid: buttons interleaved with displays -->
     <div class="main-area">
         <div class="btn-col" id="col-1"></div>
+        <div class="oled" id="oled-left">
+            <div class="oled-title">—</div>
+        </div>
         <div class="btn-col" id="col-2"></div>
-        <div class="display-area" id="display-area">
-            <div class="oled" id="oled-left">
-                <div class="oled-title">—</div>
-            </div>
-            <div class="oled" id="oled-right">
-                <div class="oled-title">—</div>
-            </div>
+        <div class="oled" id="oled-right">
+            <div class="oled-title">—</div>
         </div>
         <div class="btn-col" id="col-3"></div>
     </div>
