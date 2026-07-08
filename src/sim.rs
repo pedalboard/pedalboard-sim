@@ -118,7 +118,7 @@ impl Pedalboard {
     pub fn tick(&mut self, midi: &mut MidiOut) {
         if self.controller.any_active() {
             let now = self.now_ms();
-            let result = self.controller.tick(now, &self.config);
+            let result = self.controller.process(InputEvent::Tick, now, &self.config);
             self.emit_result(&result, midi);
         }
     }
