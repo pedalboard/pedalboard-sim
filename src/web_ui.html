@@ -442,21 +442,21 @@ body {
         const cx = size / 2;
         const cy = size / 2;
         const circumference = 2 * Math.PI * radius;
-        const arcFraction = 300 / 360; // 7 o'clock to 5 o'clock = 300°
-        const arcLength = circumference * arcFraction;
-        const segmentLength = arcLength / numSegments;
-        const gap = segmentLength * 0.2;
-        const dash = segmentLength - gap;
+        const arcDegrees = 300; // 7 o'clock to 5 o'clock
+        const arcLength = circumference * arcDegrees / 360;
+        const stepLength = arcLength / numSegments; // distance between segment centers
+        const dash = stepLength * 0.75; // visible part of each segment
 
         let svg = `<svg class="led-ring" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg" style="transform: rotate(120deg)">`;
         for (let i = 0; i < numSegments; i++) {
+            const offset = -(i * stepLength);
             svg += `<circle class="seg seg-${i}"
                 cx="${cx}" cy="${cy}" r="${radius}"
                 fill="none"
                 stroke="#333"
                 stroke-width="${strokeWidth}"
                 stroke-dasharray="${dash} ${circumference - dash}"
-                stroke-dashoffset="${-i * segmentLength}"
+                stroke-dashoffset="${offset}"
                 stroke-linecap="round"/>`;
         }
         svg += '</svg>';
