@@ -1,5 +1,5 @@
 use pedalboard_protocol::config::{Color, Config};
-use pedalboard_protocol::controller::{Controller, ControllerResult, InputEvent};
+use pedalboard_protocol::controller::{Controller, Event, Output};
 use pedalboard_protocol::engine::ActionStep;
 use pedalboard_protocol::long_press::Edge;
 use serde::Serialize;
@@ -59,7 +59,7 @@ impl Pedalboard {
     pub fn new(config: Config, preset_index: usize) -> Self {
         let mut ctrl = Controller::new();
         if preset_index > 0 && preset_index < config.presets.len() {
-            ctrl.switch_to(preset_index as u8, &config);
+            ctrl.select_preset(preset_index as u8, &config);
         }
         Self {
             config,
@@ -90,7 +90,7 @@ impl Pedalboard {
     pub fn press_button(&mut self, button_index: usize, midi: &mut MidiOut) {
         let now = self.now_ms();
         let result = self.controller.process(
-            InputEvent::ButtonEdge {
+            Event::ButtonEdge {
                 index: button_index as u8,
                 edge: Edge::Activate,
             },
@@ -104,7 +104,7 @@ impl Pedalboard {
     pub fn release_button(&mut self, button_index: usize, midi: &mut MidiOut) {
         let now = self.now_ms();
         let result = self.controller.process(
-            InputEvent::ButtonEdge {
+            Event::ButtonEdge {
                 index: button_index as u8,
                 edge: Edge::Deactivate,
             },
@@ -116,9 +116,9 @@ impl Pedalboard {
 
     /// Tick for long-press detection.
     pub fn tick(&mut self, midi: &mut MidiOut) {
-        if self.controller.any_active() {
+        if self.controller.button_held() {
             let now = self.now_ms();
-            let result = self.controller.process(InputEvent::Tick, now, &self.config);
+            let result = self.controller.process(Event::Tick, now, &self.config);
             self.emit_result(&result, midi);
         }
     }
@@ -127,7 +127,7 @@ impl Pedalboard {
     pub fn turn_encoder(&mut self, encoder_index: usize, clockwise: bool, midi: &mut MidiOut) {
         let now = self.now_ms();
         let result = self.controller.process(
-            InputEvent::EncoderTurn {
+            Event::EncoderTurn {
                 index: encoder_index as u8,
                 clockwise,
             },
@@ -139,7 +139,7 @@ impl Pedalboard {
 
     /// Switch to a specific preset.
     pub fn switch_preset(&mut self, index: usize, midi: &mut MidiOut) {
-        let result = self.controller.switch_to(index as u8, &self.config);
+        let result = self.controller.select_preset(index as u8, &self.config);
         self.emit_result(&result, midi);
     }
 
@@ -154,13 +154,13 @@ impl Pedalboard {
 
     /// Returns true if any button is currently held.
     pub fn any_active(&self) -> bool {
-        self.controller.any_active()
+        self.controller.button_held()
     }
 
     /// Create a serializable state snapshot for the web UI.
     pub fn snapshot(&self) -> SimState {
         let preset = self.config.presets.get(self.active_preset());
-        let button_active = self.controller.button_active();
+        let button_active = self.controller.button_states();
         let encoder_values = self.controller.encoder_values();
 
         let buttons = (0..6)
@@ -208,7 +208,7 @@ impl Pedalboard {
         }
     }
 
-    fn emit_result(&self, result: &ControllerResult, midi: &mut MidiOut) {
+    fn emit_result(&self, result: &Output, midi: &mut MidiOut) {
         for step in &result.midi {
             match step {
                 ActionStep::Send(msg) => {
