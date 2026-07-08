@@ -2,7 +2,7 @@
 
 CONFIG ?= ../pedalboard-cli/examples/practice.yaml
 BIN = config.bin
-PORT ?= 3001
+PORT ?= 3210
 MIDI_FIFO ?= /tmp/midi-fifo
 
 help: ## Show this help
