@@ -2,58 +2,77 @@
 
 Virtual pedalboard simulator — develop and test without hardware.
 
-Uses the same `pedalboard-protocol` crate as the real firmware, so button logic, encoder acceleration, LED behavior, and MIDI output are identical.
+Uses the same `Controller` from the protocol crate as the real firmware. Button logic, long-press detection, encoder acceleration, and MIDI output are identical.
 
-## Usage
+## Quick Start
 
 ```bash
-# Run without config (raw MIDI mode — buttons send CCs)
-pedalboard-sim
+# Compile a config and run with web UI
+make run
 
-# Run with a config (same binary format uploaded to the device)
-pedalboard-sim -c my-preset.bin
+# Or step by step:
+pedalboard-cli compile ../pedalboard-cli/examples/practice.yaml -o config.bin
+pedalboard-sim -c config.bin --web 0.0.0.0:3001
+```
 
-# Custom MIDI port name
-pedalboard-sim -p "My Pedalboard"
+Open http://localhost:3001 for the web UI.
+
+## Modes
+
+```bash
+# TUI only (terminal)
+pedalboard-sim -c config.bin
+
+# TUI + Web UI
+pedalboard-sim -c config.bin --web 0.0.0.0:3001
+
+# Raw MIDI mode (no config, buttons send CCs)
+make dev
 ```
 
 ## Controls
 
 | Key | Action |
 |-----|--------|
-| 1-6 | Press button A-F |
-| ←/→ | Turn encoder 0 |
-| ↑/↓ | Turn encoder 1 |
-| F1-F9 | Switch preset |
+| A-F | Press button A-F |
+| ←/→ | Turn encoder Vol |
+| ↑/↓ | Turn encoder Gain |
 | q | Quit |
+
+## Web UI
+
+The web UI at `--web <addr>` renders the pedalboard layout matching the real hardware:
+- 6 foot buttons with LED rings (3×2 grid)
+- 2 rotary encoders with heatmap rings
+- 2 OLED display areas
+- Mode/Mon indicator LEDs
+- Keyboard + mouse + touch support
+- Long-press detection (hold button > 500ms)
+
+Both TUI and web UI control the same virtual pedalboard simultaneously.
 
 ## MIDI Output
 
-The simulator creates a virtual ALSA MIDI port that any application can connect to:
-- Bridge (`pedalboard-bridge`)
+Creates a virtual ALSA MIDI port that any application can connect to:
+- `pedalboard-bridge` (for full audio chain testing)
 - DAW (Ardour, Reaper, etc.)
-- `aconnect` / `jack_connect` for manual routing
-- MOD UI (via mod-host MIDI input)
+- MOD UI (via mod-host)
 
-## Development
+## Makefile
 
 ```bash
-# Build
-cargo build
-
-# Run (requires ALSA for virtual MIDI)
-cargo run
-
-# Connect bridge to the simulator
-pedalboard-bridge -port "Pedalboard Sim" -addr :8080 -audio audio-patches.json
+make run                          # compile practice.yaml + run
+make run CONFIG=my-config.yaml    # use different config
+make dev                          # raw MIDI mode
+make compile                      # just compile, don't run
 ```
 
 ## Architecture
 
 ```
-pedalboard-protocol (shared logic: button state machines, MIDI generation)
-       ├── pedalboard-midi     (real hardware: RP2040 + RTIC)
-       └── pedalboard-sim      (simulator: native Linux + virtual MIDI)
+pedalboard-protocol::Controller
+       ├── pedalboard-midi     (firmware: RP2040 + RTIC)
+       └── pedalboard-sim      (simulator: native Linux)
+              ├── TUI          (crossterm terminal)
+              └── Web UI       (axum + WebSocket)
 ```
-
-The simulator proves the protocol crate's abstraction is correct — if it works on both RP2040 and x86_64 Linux, the logic is hardware-independent.
