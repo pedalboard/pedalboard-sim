@@ -282,19 +282,19 @@ fn render(
             pb.preset_name()
         )?;
         write!(stdout, "\r\n")?;
-        write!(stdout, "          [Vol]   ○ ○   [Gain]\r\n")?;
+        write!(stdout, "        [Vol]   ○ ○   [Gain]\r\n")?;
         write!(stdout, "\r\n")?;
         write!(
             stdout,
-            "  (D) {:<8}  ┌──────┐  (E) {:<8}  ┌──────┐  (F) {:<8}\r\n",
+            "  (D) {:<8} (E) {:<8} (F) {:<8}\r\n",
             lbl(3),
             lbl(4),
             lbl(5)
         )?;
-        write!(stdout, "               │      │               │      │\r\n")?;
+        write!(stdout, "\r\n")?;
         write!(
             stdout,
-            "  (A) {:<8}  └──────┘  (B) {:<8}  └──────┘  (C) {:<8}\r\n",
+            "  (A) {:<8} (B) {:<8} (C) {:<8}\r\n",
             lbl(0),
             lbl(1),
             lbl(2)
@@ -303,17 +303,11 @@ fn render(
     } else {
         write!(stdout, " No config (raw MIDI mode)\r\n")?;
         write!(stdout, "\r\n")?;
-        write!(stdout, "          [Vol]   ○ ○   [Gain]\r\n")?;
+        write!(stdout, "        [Vol]   ○ ○   [Gain]\r\n")?;
         write!(stdout, "\r\n")?;
-        write!(
-            stdout,
-            "  (D) CC23   ┌──────┐  (E) CC24   ┌──────┐  (F) CC25\r\n"
-        )?;
-        write!(stdout, "             │      │             │      │\r\n")?;
-        write!(
-            stdout,
-            "  (A) CC20   └──────┘  (B) CC21   └──────┘  (C) CC22\r\n"
-        )?;
+        write!(stdout, "  (D) CC23     (E) CC24     (F) CC25\r\n")?;
+        write!(stdout, "\r\n")?;
+        write!(stdout, "  (A) CC20     (B) CC21     (C) CC22\r\n")?;
         write!(stdout, "\r\n")?;
     }
 
