@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pedalboard Simulator</title>
+<title>OpenDeck Pedalboard</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
     background: #1a1a1a;
     color: #e0e0e0;
@@ -16,232 +17,594 @@ body {
     justify-content: center;
     min-height: 100vh;
     padding: 20px;
-}
-.container {
-    max-width: 900px;
-    width: 100%;
-}
-header {
-    text-align: center;
-    margin-bottom: 24px;
-}
-header h1 {
-    font-size: 1.5rem;
-    color: #aaa;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-}
-.preset-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 24px;
-    background: #222;
-    border-radius: 8px;
-    padding: 12px 20px;
-    border: 1px solid #333;
-}
-.preset-name {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #fff;
-    min-width: 200px;
-    text-align: center;
-}
-.preset-nav {
-    display: flex;
-    gap: 6px;
-}
-.preset-btn {
-    background: #333;
-    border: 1px solid #555;
-    color: #ccc;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-family: inherit;
-    transition: background 0.15s;
-}
-.preset-btn:hover { background: #444; }
-.preset-btn:active { background: #555; }
-.preset-btn.active { background: #555; border-color: #888; color: #fff; }
-.buttons-row {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 12px;
-    margin-bottom: 32px;
-}
-.foot-button {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    aspect-ratio: 1;
-    background: #2a2a2a;
-    border: 2px solid #444;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-    padding: 12px;
-    min-height: 100px;
     user-select: none;
+    -webkit-user-select: none;
+}
+
+.board {
+    background: #2d4a3e;
+    border-radius: 20px;
+    padding: 40px 50px;
+    box-shadow:
+        0 4px 30px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 0 0 3px #1f3329;
     position: relative;
+    display: grid;
+    grid-template-columns: 140px 1fr 1fr 140px;
+    grid-template-rows: auto 1fr;
+    gap: 20px;
+    width: 100%;
+    max-width: 880px;
+    min-height: 460px;
+    align-items: center;
 }
-.foot-button:hover { border-color: #666; }
-.foot-button:active { transform: scale(0.95); }
-.foot-button.active {
-    border-color: var(--btn-color, #666);
-    box-shadow: 0 0 20px var(--btn-color, #333), inset 0 0 15px rgba(0,0,0,0.4);
-}
-.foot-button .led {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #333;
-    margin-bottom: 8px;
-    transition: all 0.15s;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
-}
-.foot-button.active .led {
-    background: var(--btn-color, #666);
-    box-shadow: 0 0 12px var(--btn-color, #666), 0 0 4px var(--btn-color, #666);
-}
-.foot-button .label {
-    font-size: 0.85rem;
-    color: #bbb;
-    text-align: center;
-    word-break: break-word;
-}
-.foot-button .key-hint {
+
+/* Silkscreen-style markings */
+.board::before {
+    content: 'OPENDECK v2';
     position: absolute;
-    bottom: 6px;
-    right: 8px;
-    font-size: 0.65rem;
-    color: #555;
+    bottom: 12px;
+    right: 20px;
+    font-size: 0.6rem;
+    color: rgba(200, 220, 200, 0.25);
+    letter-spacing: 2px;
 }
-.encoders-row {
+
+/* --- Encoder area --- */
+.encoder-area {
+    grid-column: 2 / 4;
+    grid-row: 1;
     display: flex;
     justify-content: center;
-    gap: 60px;
-    margin-bottom: 32px;
+    gap: 80px;
+    padding: 10px 0;
 }
+
 .encoder {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
+
+.encoder-ring {
+    position: relative;
+    width: 72px;
+    height: 72px;
+}
+
+.encoder-ring svg {
+    width: 72px;
+    height: 72px;
+    transform: rotate(-135deg);
+}
+
 .encoder-knob {
-    width: 80px;
-    height: 80px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 48px;
+    height: 48px;
+    margin: -24px 0 0 -24px;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #555, #222);
-    border: 2px solid #666;
+    background: radial-gradient(circle at 38% 38%, #666, #2a2a2a);
+    border: 2px solid #555;
+    cursor: ns-resize;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.encoder-knob .indicator {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    width: 3px;
+    height: 12px;
+    margin-left: -1.5px;
+    background: #ddd;
+    border-radius: 2px;
+    transform-origin: center 19px;
+}
+
+.encoder-label {
+    font-size: 0.75rem;
+    color: rgba(200, 220, 200, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.encoder-value {
+    font-size: 0.65rem;
+    color: rgba(200, 220, 200, 0.35);
+}
+
+/* --- Button columns --- */
+.button-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    grid-row: 1 / 3;
+}
+
+.button-col.left { grid-column: 1; }
+.button-col.right { grid-column: 4; }
+
+/* --- Foot button with LED ring --- */
+.foot-btn {
+    position: relative;
+    width: 110px;
+    height: 110px;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: ns-resize;
-    user-select: none;
-    position: relative;
-    transition: transform 0.1s;
 }
-.encoder-knob::after {
-    content: '';
-    width: 4px;
-    height: 20px;
-    background: #ccc;
-    border-radius: 2px;
+
+.foot-btn svg.led-ring {
     position: absolute;
-    top: 10px;
-    transform-origin: center 30px;
+    width: 110px;
+    height: 110px;
+    top: 0;
+    left: 0;
 }
-.encoder-label {
+
+.foot-btn .btn-cap {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #444, #1a1a1a);
+    border: 2px solid #555;
+    cursor: pointer;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.08s, box-shadow 0.08s;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+}
+
+.foot-btn .btn-cap:active,
+.foot-btn .btn-cap.pressed {
+    transform: scale(0.94);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.foot-btn .btn-cap .key-hint {
+    font-size: 0.6rem;
+    color: #555;
+    position: absolute;
+    bottom: 8px;
+}
+
+/* --- OLED displays --- */
+.display-area {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: stretch;
+}
+
+.oled {
+    background: #000;
+    border: 1.5px solid #444;
+    border-radius: 6px;
+    width: 180px;
+    min-height: 160px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+}
+
+.oled .oled-title {
+    font-size: 0.65rem;
+    color: #555;
+    text-align: center;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #222;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.oled .oled-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
     font-size: 0.85rem;
-    color: #aaa;
+    color: #444;
+    padding: 4px 0;
+    transition: color 0.15s;
 }
-.encoder-value {
-    font-size: 0.75rem;
-    color: #666;
+
+.oled .oled-row.active {
+    color: #ffffff;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
 }
-.status-bar {
+
+.oled .oled-row .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #333;
+    margin-right: 8px;
+    flex-shrink: 0;
+    transition: background 0.15s, box-shadow 0.15s;
+}
+
+.oled .oled-row.active .dot {
+    background: var(--row-color, #fff);
+    box-shadow: 0 0 6px var(--row-color, #fff);
+}
+
+/* --- Preset bar --- */
+.preset-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
     background: #222;
-    border: 1px solid #333;
     border-radius: 8px;
     padding: 10px 20px;
-    text-align: center;
-    font-size: 0.8rem;
+    border: 1px solid #333;
+    width: 100%;
+    max-width: 880px;
+    flex-wrap: wrap;
+}
+
+.preset-bar .preset-label {
+    font-size: 0.7rem;
     color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-right: 10px;
 }
-.status-bar.connected { border-color: #2a5; }
-.status-bar.disconnected { border-color: #a33; }
+
+.preset-btn {
+    background: #333;
+    border: 1px solid #555;
+    color: #888;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-family: inherit;
+    transition: all 0.12s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preset-btn:hover { background: #444; color: #ccc; }
+.preset-btn.active {
+    background: #4a7a6a;
+    border-color: #6a9a8a;
+    color: #fff;
+    box-shadow: 0 0 8px rgba(74, 122, 106, 0.4);
+}
+
+/* --- Status --- */
+.status-bar {
+    margin-top: 12px;
+    font-size: 0.7rem;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .status-dot {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    margin-right: 6px;
     background: #a33;
+    transition: background 0.3s;
 }
-.status-bar.connected .status-dot { background: #2a5; }
-@media (max-width: 600px) {
-    .buttons-row { grid-template-columns: repeat(3, 1fr); }
-    .encoders-row { gap: 30px; }
+
+.status-bar.connected .status-dot {
+    background: #3a8;
+    box-shadow: 0 0 6px rgba(51, 170, 136, 0.5);
+}
+
+/* --- Keyboard help --- */
+.help-text {
+    margin-top: 10px;
+    font-size: 0.6rem;
+    color: #444;
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+    .board {
+        grid-template-columns: 100px 1fr 1fr 100px;
+        padding: 24px 20px;
+        gap: 12px;
+    }
+    .foot-btn { width: 90px; height: 90px; }
+    .foot-btn svg.led-ring { width: 90px; height: 90px; }
+    .foot-btn .btn-cap { width: 52px; height: 52px; }
+    .encoder-area { gap: 40px; }
+    .encoder-ring { width: 60px; height: 60px; }
+    .encoder-ring svg { width: 60px; height: 60px; }
+    .encoder-knob { width: 40px; height: 40px; margin: -20px 0 0 -20px; }
+    .oled { width: 140px; min-height: 130px; padding: 8px 10px; }
+    .oled .oled-row { font-size: 0.75rem; }
 }
 </style>
 </head>
 <body>
-<div class="container">
-    <header>
-        <h1>Pedalboard Simulator</h1>
-    </header>
-    <div class="preset-bar">
-        <div class="preset-nav" id="preset-nav"></div>
-        <div class="preset-name" id="preset-name">(no config)</div>
+
+<div class="board" id="board">
+    <!-- Encoder area: top center spanning col 2-3 -->
+    <div class="encoder-area" id="encoder-area"></div>
+
+    <!-- Left button column: D(3), E(4), A(0) -->
+    <div class="button-col left" id="col-left"></div>
+
+    <!-- Display area: center -->
+    <div class="display-area" id="display-area">
+        <div class="oled" id="oled-left">
+            <div class="oled-title">—</div>
+        </div>
+        <div class="oled" id="oled-right">
+            <div class="oled-title">—</div>
+        </div>
     </div>
-    <div class="buttons-row" id="buttons-row"></div>
-    <div class="encoders-row" id="encoders-row"></div>
-    <div class="status-bar disconnected" id="status-bar">
-        <span class="status-dot"></span>Connecting...
-    </div>
+
+    <!-- Right button column: F(5), B(1), C(2) -->
+    <div class="button-col right" id="col-right"></div>
 </div>
+
+<div class="preset-bar" id="preset-bar">
+    <span class="preset-label">Preset</span>
+</div>
+
+<div class="status-bar disconnected" id="status-bar">
+    <span class="status-dot"></span>
+    <span id="status-text">Connecting…</span>
+</div>
+
+<div class="help-text">Keys 1–6: buttons &nbsp;|&nbsp; ←→: Vol &nbsp;|&nbsp; ↑↓: Gain</div>
+
 <script>
 (function() {
+    'use strict';
+
+    // --- Physical layout mapping ---
+    const LEFT_COL = [3, 4, 0];  // D, E, A (top to bottom)
+    const RIGHT_COL = [5, 1, 2]; // F, B, C (top to bottom)
+    const NUM_SEGMENTS = 12;
+
     let ws = null;
     let reconnectTimer = null;
+    let state = null;
 
     const statusBar = document.getElementById('status-bar');
-    const presetName = document.getElementById('preset-name');
-    const presetNav = document.getElementById('preset-nav');
-    const buttonsRow = document.getElementById('buttons-row');
-    const encodersRow = document.getElementById('encoders-row');
+    const statusText = document.getElementById('status-text');
 
+    // --- LED Ring SVG generation ---
+    function createLedRingSvg(numSegments, radius, strokeWidth, size) {
+        const cx = size / 2;
+        const cy = size / 2;
+        const circumference = 2 * Math.PI * radius;
+        const segmentLength = circumference / numSegments;
+        const gap = segmentLength * 0.2;
+        const dash = segmentLength - gap;
+
+        let svg = `<svg class="led-ring" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
+        for (let i = 0; i < numSegments; i++) {
+            const angle = (i / numSegments) * 360 - 90;
+            svg += `<circle class="seg seg-${i}"
+                cx="${cx}" cy="${cy}" r="${radius}"
+                fill="none"
+                stroke="#333"
+                stroke-width="${strokeWidth}"
+                stroke-dasharray="${dash} ${circumference - dash}"
+                stroke-dashoffset="${-i * segmentLength}"
+                stroke-linecap="round"/>`;
+        }
+        svg += '</svg>';
+        return svg;
+    }
+
+    // --- Foot button creation ---
+    function createFootButton(index) {
+        const el = document.createElement('div');
+        el.className = 'foot-btn';
+        el.dataset.index = index;
+        el.innerHTML = createLedRingSvg(NUM_SEGMENTS, 48, 6, 110) +
+            `<div class="btn-cap" data-index="${index}">
+                <span class="key-hint">${index + 1}</span>
+            </div>`;
+
+        const cap = el.querySelector('.btn-cap');
+        cap.addEventListener('mousedown', e => { e.preventDefault(); btnDown(index); cap.classList.add('pressed'); });
+        cap.addEventListener('mouseup', e => { e.preventDefault(); btnUp(index); cap.classList.remove('pressed'); });
+        cap.addEventListener('mouseleave', e => { if (e.buttons > 0) { btnUp(index); cap.classList.remove('pressed'); } });
+        cap.addEventListener('touchstart', e => { e.preventDefault(); btnDown(index); cap.classList.add('pressed'); }, { passive: false });
+        cap.addEventListener('touchend', e => { e.preventDefault(); btnUp(index); cap.classList.remove('pressed'); }, { passive: false });
+        cap.addEventListener('touchcancel', e => { btnUp(index); cap.classList.remove('pressed'); });
+
+        return el;
+    }
+
+    // --- Encoder creation ---
+    function createEncoder(index) {
+        const el = document.createElement('div');
+        el.className = 'encoder';
+        el.dataset.index = index;
+        el.innerHTML = `
+            <div class="encoder-ring">
+                ${createLedRingSvg(NUM_SEGMENTS, 30, 4, 72)}
+                <div class="encoder-knob">
+                    <div class="indicator"></div>
+                </div>
+            </div>
+            <div class="encoder-label"></div>
+            <div class="encoder-value">0</div>`;
+
+        el.addEventListener('wheel', e => {
+            e.preventDefault();
+            const clockwise = e.deltaY < 0;
+            sendAction({ type: 'encoder_turn', index: index, clockwise: clockwise });
+        }, { passive: false });
+
+        return el;
+    }
+
+    // --- Build static DOM ---
+    function buildLayout() {
+        const colLeft = document.getElementById('col-left');
+        const colRight = document.getElementById('col-right');
+        const encoderArea = document.getElementById('encoder-area');
+
+        LEFT_COL.forEach(idx => colLeft.appendChild(createFootButton(idx)));
+        RIGHT_COL.forEach(idx => colRight.appendChild(createFootButton(idx)));
+
+        encoderArea.appendChild(createEncoder(0));
+        encoderArea.appendChild(createEncoder(1));
+    }
+
+    // --- Update ring segments ---
+    function updateButtonRing(btnEl, color, active) {
+        const segs = btnEl.querySelectorAll('.seg');
+        segs.forEach(seg => {
+            if (active) {
+                seg.setAttribute('stroke', color);
+                seg.style.opacity = '1';
+                seg.style.filter = `drop-shadow(0 0 3px ${color})`;
+            } else {
+                seg.setAttribute('stroke', color);
+                seg.style.opacity = '0.15';
+                seg.style.filter = 'none';
+            }
+        });
+    }
+
+    function updateEncoderRing(encEl, value) {
+        const litCount = Math.floor((value / 127) * NUM_SEGMENTS);
+        const segs = encEl.querySelectorAll('.seg');
+        segs.forEach((seg, i) => {
+            if (i < litCount) {
+                // Heatmap: green → yellow → red
+                const ratio = i / (NUM_SEGMENTS - 1);
+                let color;
+                if (ratio < 0.5) {
+                    const g = Math.round(255);
+                    const r = Math.round(ratio * 2 * 255);
+                    color = `rgb(${r}, ${g}, 0)`;
+                } else {
+                    const r = 255;
+                    const g = Math.round((1 - (ratio - 0.5) * 2) * 255);
+                    color = `rgb(${r}, ${g}, 0)`;
+                }
+                seg.setAttribute('stroke', color);
+                seg.style.opacity = '1';
+                seg.style.filter = `drop-shadow(0 0 2px ${color})`;
+            } else {
+                seg.setAttribute('stroke', '#333');
+                seg.style.opacity = '0.4';
+                seg.style.filter = 'none';
+            }
+        });
+    }
+
+    // --- Render full state ---
+    function renderState(s) {
+        state = s;
+
+        // Update buttons
+        document.querySelectorAll('.foot-btn').forEach(el => {
+            const idx = parseInt(el.dataset.index);
+            const btn = s.buttons.find(b => b.index === idx);
+            if (btn) {
+                updateButtonRing(el, btn.color, btn.active);
+            }
+        });
+
+        // Update encoders
+        document.querySelectorAll('.encoder').forEach(el => {
+            const idx = parseInt(el.dataset.index);
+            const enc = s.encoders.find(e => e.index === idx);
+            if (enc) {
+                updateEncoderRing(el, enc.value);
+                // Rotate knob indicator
+                const rotation = (enc.value / 127) * 270 - 135;
+                const knob = el.querySelector('.encoder-knob');
+                knob.style.transform = `rotate(${rotation}deg)`;
+                el.querySelector('.encoder-label').textContent = enc.label;
+                el.querySelector('.encoder-value').textContent = enc.value;
+            }
+        });
+
+        // Update OLED displays
+        renderOled('oled-left', s.preset_name, LEFT_COL, s.buttons);
+        renderOled('oled-right', s.preset_name, RIGHT_COL, s.buttons);
+
+        // Preset bar
+        renderPresetBar(s);
+    }
+
+    function renderOled(id, presetName, indices, buttons) {
+        const oled = document.getElementById(id);
+        let html = `<div class="oled-title">${escapeHtml(presetName || '—')}</div>`;
+        indices.forEach(idx => {
+            const btn = buttons.find(b => b.index === idx);
+            const label = btn ? btn.label : `Btn ${idx}`;
+            const active = btn ? btn.active : false;
+            const color = btn ? btn.color : '#666';
+            html += `<div class="oled-row${active ? ' active' : ''}" style="--row-color: ${color}">
+                <span class="dot"></span>${escapeHtml(label)}</div>`;
+        });
+        oled.innerHTML = html;
+    }
+
+    function renderPresetBar(s) {
+        const bar = document.getElementById('preset-bar');
+        let html = '<span class="preset-label">Preset</span>';
+        if (s.num_presets > 0) {
+            for (let i = 0; i < s.num_presets; i++) {
+                const active = i === s.active_preset ? ' active' : '';
+                html += `<button class="preset-btn${active}" data-preset="${i}">${i + 1}</button>`;
+            }
+        }
+        bar.innerHTML = html;
+        bar.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                sendAction({ type: 'preset_select', index: parseInt(btn.dataset.preset) });
+            });
+        });
+    }
+
+    // --- WebSocket ---
     function connect() {
         const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
         ws = new WebSocket(proto + '//' + location.host + '/ws');
 
-        ws.onopen = function() {
+        ws.onopen = () => {
             statusBar.className = 'status-bar connected';
-            statusBar.innerHTML = '<span class="status-dot"></span>Connected';
+            statusText.textContent = 'Connected';
             if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
         };
 
-        ws.onclose = function() {
+        ws.onclose = () => {
             statusBar.className = 'status-bar disconnected';
-            statusBar.innerHTML = '<span class="status-dot"></span>Disconnected — reconnecting...';
+            statusText.textContent = 'Disconnected — reconnecting…';
             scheduleReconnect();
         };
 
-        ws.onerror = function() {
-            ws.close();
-        };
+        ws.onerror = () => { ws.close(); };
 
-        ws.onmessage = function(evt) {
+        ws.onmessage = evt => {
             try {
-                const state = JSON.parse(evt.data);
-                renderState(state);
-            } catch(e) {
+                const s = JSON.parse(evt.data);
+                renderState(s);
+            } catch (e) {
                 console.error('Bad message:', e);
             }
         };
@@ -249,10 +612,7 @@ header h1 {
 
     function scheduleReconnect() {
         if (!reconnectTimer) {
-            reconnectTimer = setTimeout(function() {
-                reconnectTimer = null;
-                connect();
-            }, 1500);
+            reconnectTimer = setTimeout(() => { reconnectTimer = null; connect(); }, 1500);
         }
     }
 
@@ -262,116 +622,50 @@ header h1 {
         }
     }
 
-    function renderState(state) {
-        // Preset name
-        presetName.textContent = state.preset_name || '(no config)';
+    function btnDown(index) { sendAction({ type: 'button_down', index: index }); }
+    function btnUp(index) { sendAction({ type: 'button_up', index: index }); }
 
-        // Preset nav buttons
-        if (state.num_presets > 0) {
-            let navHtml = '';
-            for (let i = 0; i < state.num_presets; i++) {
-                const active = i === state.active_preset ? ' active' : '';
-                navHtml += '<button class="preset-btn' + active + '" data-preset="' + i + '">' + (i + 1) + '</button>';
-            }
-            presetNav.innerHTML = navHtml;
-            presetNav.querySelectorAll('.preset-btn').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    sendAction({ type: 'preset_select', index: parseInt(this.dataset.preset) });
-                });
-            });
-        } else {
-            presetNav.innerHTML = '';
-        }
+    // --- Keyboard shortcuts ---
+    const keysHeld = {};
+    document.addEventListener('keydown', e => {
+        if (e.repeat || keysHeld[e.code]) return;
+        keysHeld[e.code] = true;
 
-        // Buttons
-        let btnHtml = '';
-        for (let i = 0; i < state.buttons.length; i++) {
-            const b = state.buttons[i];
-            const activeClass = b.active ? ' active' : '';
-            btnHtml += '<div class="foot-button' + activeClass + '" style="--btn-color:' + b.color + '" data-btn="' + i + '">';
-            btnHtml += '<div class="led"></div>';
-            btnHtml += '<div class="label">' + escapeHtml(b.label) + '</div>';
-            btnHtml += '<div class="key-hint">' + (i + 1) + '</div>';
-            btnHtml += '</div>';
-        }
-        buttonsRow.innerHTML = btnHtml;
-        buttonsRow.querySelectorAll('.foot-button').forEach(function(el) {
-            el.addEventListener('mousedown', function(e) {
-                e.preventDefault();
-                sendAction({ type: 'button_down', index: parseInt(this.dataset.btn) });
-            });
-            el.addEventListener('mouseup', function(e) {
-                e.preventDefault();
-                sendAction({ type: 'button_up', index: parseInt(this.dataset.btn) });
-            });
-            el.addEventListener('mouseleave', function(e) {
-                // Release if mouse leaves while held
-                if (e.buttons > 0) {
-                    sendAction({ type: 'button_up', index: parseInt(this.dataset.btn) });
-                }
-            });
-            el.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                sendAction({ type: 'button_down', index: parseInt(this.dataset.btn) });
-            });
-            el.addEventListener('touchend', function(e) {
-                e.preventDefault();
-                sendAction({ type: 'button_up', index: parseInt(this.dataset.btn) });
-            });
-        });
-
-        // Encoders
-        let encHtml = '';
-        for (let i = 0; i < state.encoders.length; i++) {
-            const enc = state.encoders[i];
-            const rotation = (enc.value / 127) * 270 - 135;
-            encHtml += '<div class="encoder" data-enc="' + i + '">';
-            encHtml += '<div class="encoder-knob" style="transform: rotate(' + rotation + 'deg)"></div>';
-            encHtml += '<div class="encoder-label">' + escapeHtml(enc.label) + '</div>';
-            encHtml += '<div class="encoder-value">' + enc.value + '</div>';
-            encHtml += '</div>';
-        }
-        encodersRow.innerHTML = encHtml;
-        encodersRow.querySelectorAll('.encoder').forEach(function(el) {
-            el.addEventListener('wheel', function(e) {
-                e.preventDefault();
-                const idx = parseInt(this.dataset.enc);
-                const clockwise = e.deltaY < 0;
-                sendAction({ type: 'encoder_turn', index: idx, clockwise: clockwise });
-            }, { passive: false });
-        });
-    }
-
-    function escapeHtml(s) {
-        const div = document.createElement('div');
-        div.textContent = s;
-        return div.innerHTML;
-    }
-
-    // Keyboard shortcuts
-    var keysHeld = {};
-    document.addEventListener('keydown', function(e) {
-        if (keysHeld[e.key]) return; // prevent repeat
-        keysHeld[e.key] = true;
         if (e.key >= '1' && e.key <= '6') {
-            sendAction({ type: 'button_down', index: parseInt(e.key) - 1 });
-        } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            btnDown(parseInt(e.key) - 1);
+        } else if (e.code === 'ArrowLeft') {
+            e.preventDefault();
             sendAction({ type: 'encoder_turn', index: 0, clockwise: false });
-        } else if (e.key === 'ArrowRight') {
+        } else if (e.code === 'ArrowRight') {
+            e.preventDefault();
             sendAction({ type: 'encoder_turn', index: 0, clockwise: true });
-        } else if (e.key === 'ArrowUp') {
+        } else if (e.code === 'ArrowUp') {
+            e.preventDefault();
             sendAction({ type: 'encoder_turn', index: 1, clockwise: true });
-        } else if (e.key === 'ArrowDown') {
+        } else if (e.code === 'ArrowDown') {
+            e.preventDefault();
             sendAction({ type: 'encoder_turn', index: 1, clockwise: false });
         }
     });
-    document.addEventListener('keyup', function(e) {
-        keysHeld[e.key] = false;
+
+    document.addEventListener('keyup', e => {
+        keysHeld[e.code] = false;
         if (e.key >= '1' && e.key <= '6') {
-            sendAction({ type: 'button_up', index: parseInt(e.key) - 1 });
+            e.preventDefault();
+            btnUp(parseInt(e.key) - 1);
         }
     });
 
+    // --- Utilities ---
+    function escapeHtml(s) {
+        const el = document.createElement('span');
+        el.textContent = s;
+        return el.innerHTML;
+    }
+
+    // --- Init ---
+    buildLayout();
     connect();
 })();
 </script>
