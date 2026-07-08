@@ -1,7 +1,7 @@
 use pedalboard_protocol::config::{Color, Config, LedAnimation, LedRenderer as LedRendererCfg};
 use pedalboard_protocol::controller::{Controller, Event, Output};
 use pedalboard_protocol::engine::ActionStep;
-use pedalboard_protocol::led::{LedRing, Modifier, Renderer, Rgb, RingAnimation, LEDS_PER_RING};
+use pedalboard_protocol::led::{LedRing, Modifier, Renderer, Rgb, RingAnimation};
 use pedalboard_protocol::long_press::Edge;
 use serde::Serialize;
 use std::time::Instant;
