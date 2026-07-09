@@ -6,7 +6,7 @@ description = "Virtual pedalboard simulator — develop and test without hardwar
 license = "GPL-3.0-or-later"
 
 [dependencies]
-midi-controller = "0.5.0"
+midi-controller = "0.7.1"
 midir = "0.10"
 crossterm = "0.28"
 clap = { version = "4", features = ["derive"] }

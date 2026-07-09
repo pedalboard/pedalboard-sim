@@ -9,6 +9,8 @@ enum Backend {
     Alsa(MidiOutputConnection),
     Raw(File),
     Jack(Arc<Mutex<Vec<Vec<u8>>>>),
+    #[cfg(test)]
+    Null,
 }
 
 pub struct MidiOut {
@@ -33,6 +35,17 @@ impl MidiOut {
             Backend::Jack(pending) => {
                 pending.lock().unwrap().push(msg.to_vec());
             }
+            #[cfg(test)]
+            Backend::Null => {}
+        }
+    }
+
+    /// Create a no-op MIDI output (for testing).
+    #[cfg(test)]
+    pub fn new_null() -> Self {
+        Self {
+            backend: Backend::Null,
+            _jack_client: None,
         }
     }
 
