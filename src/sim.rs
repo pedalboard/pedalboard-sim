@@ -16,6 +16,7 @@ pub struct SimState {
     pub num_presets: usize,
     pub buttons: Vec<ButtonState>,
     pub encoders: Vec<EncoderState>,
+    pub bpm: Option<u16>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -56,6 +57,7 @@ pub struct Pedalboard {
     pub config: Config,
     controller: Controller,
     start_time: Instant,
+    last_bpm: Option<u16>,
 }
 
 impl Pedalboard {
@@ -68,6 +70,7 @@ impl Pedalboard {
             config,
             controller: ctrl,
             start_time: Instant::now(),
+            last_bpm: None,
         }
     }
 
@@ -263,10 +266,14 @@ impl Pedalboard {
             num_presets: self.config.presets.len(),
             buttons,
             encoders,
+            bpm: self.last_bpm,
         }
     }
 
-    fn emit_result(&self, result: &Output, midi: &mut MidiOut) {
+    fn emit_result(&mut self, result: &Output, midi: &mut MidiOut) {
+        if let Some(bpm) = result.bpm {
+            self.last_bpm = Some(bpm);
+        }
         for step in &result.midi {
             match step {
                 ActionStep::Send(msg) => {

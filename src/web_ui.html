@@ -319,6 +319,23 @@ body {
     box-shadow: 0 0 8px rgba(74, 122, 106, 0.4);
 }
 
+/* --- BPM display --- */
+.bpm-display {
+    margin-top: 8px;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+}
+.bpm-display .bpm-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #4af;
+}
+.bpm-display .bpm-label {
+    font-size: 0.8rem;
+    color: #888;
+    margin-left: 6px;
+}
+
 /* --- Status --- */
 .status-bar {
     margin-top: 12px;
@@ -412,6 +429,11 @@ body {
 
 <div class="preset-bar" id="preset-bar">
     <span class="preset-label">Preset</span>
+</div>
+
+<div class="bpm-display" id="bpm-display" style="display:none">
+    <span class="bpm-value" id="bpm-value">—</span>
+    <span class="bpm-label">BPM</span>
 </div>
 
 <div class="status-bar disconnected" id="status-bar">
@@ -584,6 +606,14 @@ body {
 
         // Preset bar
         renderPresetBar(s);
+
+        // BPM display
+        const bpmEl = document.getElementById('bpm-display');
+        const bpmVal = document.getElementById('bpm-value');
+        if (s.bpm !== null && s.bpm !== undefined) {
+            bpmEl.style.display = 'block';
+            bpmVal.textContent = s.bpm;
+        }
     }
 
     const PRESET_COLORS = ['#00ff00','#0000ff','#ff0000','#ffff00','#00ffff','#ff00ff','#ff8800','#ffffff'];

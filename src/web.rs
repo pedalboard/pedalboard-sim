@@ -181,6 +181,7 @@ fn get_state_json(state: &AppState) -> Option<String> {
                         ring: vec!["rgb(0,0,0)".to_string(); 12],
                     })
                     .collect(),
+                bpm: None,
             };
             serde_json::to_string(&empty).ok()
         }
