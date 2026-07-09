@@ -86,7 +86,7 @@ make compile                      # just compile, don't run
 ## Architecture
 
 ```
-pedalboard-protocol::Controller
+midi-controller::Controller
        ├── pedalboard-midi     (firmware: RP2040 + RTIC)
        └── pedalboard-sim      (simulator: native Linux)
               ├── TUI          (crossterm terminal)
