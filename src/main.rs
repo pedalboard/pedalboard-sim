@@ -27,6 +27,10 @@ struct Cli {
     #[arg(long)]
     raw: Option<PathBuf>,
 
+    /// Use JACK MIDI output (connects to pedalboard-bridge via JACK).
+    #[arg(long)]
+    jack: bool,
+
     /// Start on this preset index
     #[arg(short = 'i', long, default_value = "0")]
     preset: usize,
@@ -39,10 +43,13 @@ struct Cli {
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    // Create MIDI output (virtual ALSA port or raw file)
-    let midi_out = match &cli.raw {
-        Some(path) => midi::open_raw(path)?,
-        None => midi::open_output(&cli.port)?,
+    // Create MIDI output (virtual ALSA port, raw file, or JACK)
+    let midi_out = if cli.jack {
+        midi::open_jack("pedalboard-sim")?
+    } else if let Some(path) = &cli.raw {
+        midi::open_raw(path)?
+    } else {
+        midi::open_output(&cli.port)?
     };
 
     // Load config if provided
