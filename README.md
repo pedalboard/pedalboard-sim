@@ -7,12 +7,11 @@ Uses the same `Controller` from the protocol crate as the real firmware. Button 
 ## Quick Start
 
 ```bash
-# Compile a config and run with web UI
+# Run with a YAML setlist (same file you upload to the device)
 make run
 
-# Or step by step:
-pedalboard-cli compile ../pedalboard-cli/examples/practice.yaml -o config.bin
-pedalboard-sim -c config.bin --web 0.0.0.0:3001
+# Or directly:
+pedalboard-sim --yaml ../pedalboard-cli/examples/practice.yaml --web 0.0.0.0:3001
 ```
 
 Open http://localhost:3001 for the web UI.
@@ -21,10 +20,13 @@ Open http://localhost:3001 for the web UI.
 
 ```bash
 # TUI only (terminal)
-pedalboard-sim -c config.bin
+pedalboard-sim --yaml my-setlist.yaml
 
 # TUI + Web UI
-pedalboard-sim -c config.bin --web 0.0.0.0:3001
+pedalboard-sim --yaml my-setlist.yaml --web 0.0.0.0:3001
+
+# Binary config (legacy, postcard format)
+pedalboard-sim --config config.bin
 
 # Raw MIDI mode (no config, buttons send CCs)
 make dev
@@ -77,10 +79,10 @@ The bridge reads raw MIDI bytes from the FIFO exactly as it would from the real 
 ## Makefile
 
 ```bash
-make run                          # compile practice.yaml + run
-make run CONFIG=my-config.yaml    # use different config
+make run                          # run with practice.yaml + web UI
+make run CONFIG=my-setlist.yaml   # use different config
 make dev                          # raw MIDI mode
-make compile                      # just compile, don't run
+make bridge                       # run with bridge integration (FIFO)
 ```
 
 ## Architecture

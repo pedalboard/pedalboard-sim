@@ -6,13 +6,15 @@ description = "Virtual pedalboard simulator — develop and test without hardwar
 license = "GPL-3.0-or-later"
 
 [dependencies]
-midi-controller = "0.7.1"
+midi-controller = { git = "https://github.com/pedalboard/midi-controller" }
+pedalboard-config = { git = "https://github.com/pedalboard/pedalboard-config" }
 midir = "0.10"
 crossterm = "0.28"
 clap = { version = "4", features = ["derive"] }
 anyhow = "1"
 postcard = "1.1"
 heapless = "0.9"
+serde_yaml = "0.9"
 axum = { version = "0.7", features = ["ws"] }
 tokio = { version = "1", features = ["full"] }
 serde = { version = "1", features = ["derive"] }

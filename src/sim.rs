@@ -353,10 +353,38 @@ pub fn load_config_binary(data: &[u8]) -> anyhow::Result<Config> {
     Ok(config)
 }
 
+/// Load a config from a YAML setlist file (runs the compiler).
+pub fn load_config_yaml(path: &std::path::Path) -> anyhow::Result<Config> {
+    let content = std::fs::read_to_string(path)?;
+    let setlist: pedalboard_config::Setlist = serde_yaml::from_str(&content)?;
+    let compiled = pedalboard_config::compile::compile(setlist);
+
+    for note in &compiled.notes {
+        eprintln!("  {}", note);
+    }
+
+    let presets = pedalboard_config::yaml_to_presets(&compiled.setlist);
+    let global = compiled
+        .setlist
+        .global
+        .as_ref()
+        .map(pedalboard_config::yaml_global_to_protocol);
+
+    let mut config = Config::default();
+    if let Some(gc) = global {
+        config.global = gc;
+    }
+    for preset in presets {
+        config.presets.push(preset).ok();
+    }
+
+    Ok(config)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use midi_controller::config::{Config, GlobalConfig, Preset};
+    use midi_controller::config::{Config, Preset};
 
     fn test_config() -> Config {
         let mut config = Config::default();

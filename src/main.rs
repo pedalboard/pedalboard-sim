@@ -14,8 +14,12 @@ mod web;
 )]
 struct Cli {
     /// Binary config file (postcard format, as uploaded to device)
-    #[arg(short, long)]
+    #[arg(short, long, conflicts_with = "yaml")]
     config: Option<PathBuf>,
+
+    /// YAML setlist file (runs compiler, same as what gets uploaded to device)
+    #[arg(short = 'y', long)]
+    yaml: Option<PathBuf>,
 
     /// MIDI output port name (creates virtual ALSA sequencer port)
     #[arg(short, long, default_value = "Pedalboard Sim")]
@@ -53,12 +57,13 @@ fn main() -> anyhow::Result<()> {
     };
 
     // Load config if provided
-    let config = match &cli.config {
-        Some(path) => {
-            let data = std::fs::read(path)?;
-            Some(sim::load_config_binary(&data)?)
-        }
-        None => None,
+    let config = if let Some(path) = &cli.yaml {
+        Some(sim::load_config_yaml(path)?)
+    } else if let Some(path) = &cli.config {
+        let data = std::fs::read(path)?;
+        Some(sim::load_config_binary(&data)?)
+    } else {
+        None
     };
 
     match cli.web {
